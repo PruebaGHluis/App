@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f6f43">
+  <meta name="description" content="Plan de entrenamiento de golf para jugadores de nivel medio y avanzado">
+  <title>Golf Plan</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1 id="title">Golf Plan</h1>
+    <button class="icon-btn" data-nav="perfil" aria-label="Perfil y ajustes">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    </button>
+  </header>
+
+  <main id="view"></main>
+
+  <nav class="tabbar" aria-label="Secciones">
+    <button data-nav="plan">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      <span>Plan</span>
+    </button>
+    <button data-nav="entrenar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V3l12 5-12 5"/></svg>
+      <span>Ejercicios</span>
+    </button>
+    <button data-nav="vueltas">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <span>Vueltas</span>
+    </button>
+    <button data-nav="distancias">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h18M6 18V9M11 18V5M16 18v-7M21 18v-4"/></svg>
+      <span>Distancias</span>
+    </button>
+    <button data-nav="progreso">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>
+      <span>Progreso</span>
+    </button>
+  </nav>
+
+  <div id="sheet" class="sheet" hidden></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
