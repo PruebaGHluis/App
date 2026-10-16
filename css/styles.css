@@ -312,7 +312,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: .92rem; }
 /* Hoja inferior */
 .sheet { position: fixed; inset: 0; z-index: 50; }
 .sheet[hidden] { display: none; }
-.sheet-backdrop { position: absolute; inset: 0; background: rgba(5, 9, 6, .55); animation: fade .15s ease-out; }
+.sheet-backdrop { position: absolute; inset: 0; background: rgba(5, 9, 6, .55); }
 .sheet-panel {
   position: absolute; left: 0; right: 0; bottom: 0;
   max-height: 92vh; overflow-y: auto;
@@ -325,8 +325,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: .92rem; }
 .sheet-close { position: absolute; top: 12px; right: 12px; }
 .sheet-panel > h2, .sheet-panel > .card-title { padding-right: 48px; }
 .sheet-panel .grab { width: 40px; height: 4px; border-radius: 99px; background: var(--line-strong); margin: -6px auto 12px; }
-@keyframes up { from { transform: translateY(30px); opacity: 0; } }
-@keyframes fade { from { opacity: 0; } }
+/* Solo desplazamiento: la hoja es visible desde el primer frame aunque el navegador retrase las animaciones. */
+@keyframes up { from { transform: translateY(30px); } }
 
 .toast {
   position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 14px);
@@ -465,3 +465,26 @@ details.group .group-body { padding: 6px 0 12px; }
   .item.just .result { animation: none; }
 }
 .back-ico { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Fila anillo + texto (hándicap calculado, prueba de nivel) */
+.whs { display: flex; align-items: center; gap: 16px; }
+.whs .grow { flex: 1; min-width: 0; }
+.whs h2 { margin-bottom: 4px; }
+
+/* Hoja de vuelta: solo se ve el modo elegido */
+form[data-mode="totales"] .mode-hoyos, form[data-mode="hoyos"] .mode-totales { display: none; }
+
+/* Vuelta hoyo a hoyo */
+.hole-nav { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin: 4px 0 12px; }
+.hole-nav button {
+  min-height: 36px; border-radius: 8px; border: 1px solid var(--line-strong);
+  background: var(--surface); color: var(--muted); font: inherit; font-size: .85rem; font-weight: 700;
+  font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.hole-nav button.filled { background: var(--surface-2); color: var(--text); border-color: var(--line); }
+.hole-nav button.cur { background: var(--text); color: var(--bg); border-color: var(--text); }
+.hole-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+.hole-card > * + * { margin-top: 12px; }
+.hole-actions { display: flex; gap: 10px; }
+.hole-actions .btn { flex: 1; }
+.hole-actions .btn:disabled { opacity: .45; cursor: default; }

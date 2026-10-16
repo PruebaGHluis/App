@@ -7,8 +7,10 @@ const KEY = 'golfplan:v1';
 const defaults = () => ({
   profile: null,   // { name, handicap, days[], minutes, weaknesses[], clubs[] }
   sessions: [],    // { id, date, drillId, attempts, successes, notes }
-  rounds: [],      // { id, date, course, holes, par, score, fairways, fwPossible, gir, putts, udAtt, udMade, penalties, notes }
+  rounds: [],      // { id, date, course, holes, par, score, fairways, fwPossible, gir, putts, udAtt, udMade, penalties, notes, rating?, slope?, holesData? }
   shots: [],       // { id, date, club, carry }
+  tests: [],       // { id, date, stations: { puttCorto, puttLargo, chip, wedge, salida } }
+  courses: [],     // { name, pars[], rating?, slope? }
   plan: null,      // { week, seed, start?, days: [{ dow, items: [{ drillId, sessionId }] }] }
 });
 

@@ -14,6 +14,8 @@ const valid = () => ({
     fairways: 8, fwPossible: 14, gir: 7, putts: 31, udAtt: 8, udMade: 3, penalties: 1, notes: '',
   }],
   shots: [{ id: 'mgx3ghi00', date: '2026-10-03', club: 'H7', carry: 140 }],
+  tests: [{ id: 'mgx4jkl', date: '2026-10-10', stations: { puttCorto: 5, puttLargo: 3, chip: 4, wedge: 2, salida: 3 } }],
+  courses: [{ name: 'Club de Campo', pars: [4, 4, 3, 5, 4, 4, 3, 5, 4, 4, 4, 3, 5, 4, 4, 3, 5, 4], rating: 71.2, slope: 128 }],
   plan: { week: '2026-10-12', seed: 123, start: '2026-10-12', days: [{ dow: 0, items: [{ drillId: 'reloj-putt', sessionId: 'mgx1abc' }] }] },
   lastWeek: { week: '2026-10-05', done: 7, total: 9, met: 4 },
 });
@@ -29,7 +31,7 @@ describe('sanitizeState', () => {
     const data = { ...valid(), extra: XSS, __proto__: { polluted: true } };
     data.sessions[0].onclick = XSS;
     const { state } = sanitizeState(data);
-    assert.deepEqual(Object.keys(state).sort(), ['lastWeek', 'plan', 'profile', 'rounds', 'sessions', 'shots']);
+    assert.deepEqual(Object.keys(state).sort(), ['courses', 'lastWeek', 'plan', 'profile', 'rounds', 'sessions', 'shots', 'tests']);
     assert.ok(!('onclick' in state.sessions[0]));
   });
 
@@ -109,6 +111,62 @@ describe('sanitizeState', () => {
       assert.deepEqual(state.sessions, []);
       assert.equal(state.plan, null);
     }
+  });
+});
+
+describe('datos nuevos: hoyo a hoyo, campos y prueba de nivel', () => {
+  const hole = (over = {}) => ({ par: 4, score: 5, putts: 2, fw: 'si', pen: 0, putt1: 6.5, ...over });
+
+  test('una vuelta hoyo a hoyo válida conserva su detalle, valoración y slope', () => {
+    const data = valid();
+    Object.assign(data.rounds[0], { rating: 71.2, slope: 128, holesData: Array.from({ length: 18 }, () => hole()) });
+    const r = sanitizeState(data).state.rounds[0];
+    assert.equal(r.holesData.length, 18);
+    assert.equal(r.rating, 71.2);
+    assert.equal(r.slope, 128);
+  });
+
+  test('un detalle hoyo a hoyo dañado se descarta sin perder la vuelta', () => {
+    for (const bad of [
+      Array.from({ length: 17 }, () => hole()),                       // número de hoyos distinto
+      [...Array.from({ length: 17 }, () => hole()), hole({ score: XSS })],
+      [...Array.from({ length: 17 }, () => hole()), hole({ par: 9 })],
+    ]) {
+      const data = valid();
+      data.rounds[0].holesData = bad;
+      const { state } = sanitizeState(data);
+      assert.equal(state.rounds.length, 1);
+      assert.ok(!('holesData' in state.rounds[0]));
+    }
+  });
+
+  test('valoración y slope fuera de rango no se guardan', () => {
+    const data = valid();
+    Object.assign(data.rounds[0], { rating: 200, slope: XSS });
+    const r = sanitizeState(data).state.rounds[0];
+    assert.ok(!('rating' in r) && !('slope' in r));
+  });
+
+  test('campos: nombre obligatorio, 9 o 18 pares y sin claves peligrosas', () => {
+    const data = valid();
+    data.courses.push(
+      { name: '__proto__', pars: Array(9).fill(4) },
+      { name: '', pars: Array(18).fill(4) },
+      { name: 'X', pars: [4, 4] },
+      { name: 'Sin pares', rating: 70.1, slope: 120 },
+    );
+    const { state } = sanitizeState(data);
+    assert.deepEqual(state.courses.map((c) => c.name), ['Club de Campo', '__proto__', 'Sin pares']);
+    assert.ok(!('pars' in state.courses[2]));
+    assert.equal(Object.getPrototypeOf(state.courses[1]), Object.prototype);
+  });
+
+  test('prueba de nivel: cada estación entre 0 y 6', () => {
+    const data = valid();
+    data.tests.push({ id: 't2', date: '2026-10-11', stations: { ...data.tests[0].stations, salida: 7 } });
+    const { state, dropped } = sanitizeState(data);
+    assert.equal(state.tests.length, 1);
+    assert.equal(dropped, 1);
   });
 });
 

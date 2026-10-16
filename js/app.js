@@ -6,6 +6,7 @@ import {
 } from './plan.js';
 import { lineChart } from './charts.js';
 import { isBackup } from './validate.js';
+import { totalsFromHoles, puttingGained, handicapIndex, COMBINE, COMBINE_BALLS, combineScore } from './golf.js';
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const view = $('#view');
@@ -149,12 +150,13 @@ function closeCelebrate() {
   el.innerHTML = '';
 }
 
-function stepper(name, label, value, min = 0) {
+function stepper(name, label, value, min = 0, max = null) {
+  const lim = `data-min="${min}" ${max != null ? `data-max="${max}"` : ''}`;
   return `<div class="field"><span>${label}</span>
     <div class="stepper">
-      <button type="button" data-action="step" data-name="${name}" data-delta="-1" data-min="${min}" aria-label="Restar ${label.toLowerCase()}">−</button>
-      <input type="number" inputmode="numeric" name="${name}" value="${value}" min="${min}" required>
-      <button type="button" data-action="step" data-name="${name}" data-delta="1" data-min="${min}" aria-label="Sumar ${label.toLowerCase()}">+</button>
+      <button type="button" data-action="step" data-name="${name}" data-delta="-1" ${lim} aria-label="Restar ${label.toLowerCase()}">−</button>
+      <input type="number" inputmode="numeric" name="${name}" value="${value}" min="${min}" ${max != null ? `max="${max}"` : ''} required>
+      <button type="button" data-action="step" data-name="${name}" data-delta="1" ${lim} aria-label="Sumar ${label.toLowerCase()}">+</button>
     </div></div>`;
 }
 
@@ -368,10 +370,69 @@ function renderDrills() {
       </button></li>`;
     }).join('');
   return `<div class="stack">
+    ${levelTestCard()}
     <div class="chips" role="group" aria-label="Filtrar por área">${chips}</div>
     ${!advanced ? '<p class="small muted">Los ejercicios marcados como avanzados no entran en tu plan automático (hándicap > 10), pero puedes hacerlos cuando quieras.</p>' : ''}
     <div class="card"><ul class="list">${list}</ul></div>
   </div>`;
+}
+
+// ── Prueba de nivel ──
+// Siempre las mismas 30 bolas en 5 estaciones: una cifra de 0 a 100 comparable en el tiempo.
+const testsByDate = () => [...getState().tests].sort(byDateDesc);
+
+function levelTestCard() {
+  const tests = testsByDate();
+  const last = tests[0];
+  const best = tests.length ? Math.max(...tests.map((t) => combineScore(t.stations))) : null;
+  if (!last) {
+    return `<section class="card">
+      <h2>Prueba de nivel</h2>
+      <p class="small muted">30 bolas en 5 estaciones (putt corto y largo, chip, wedge y salida). Unos 40 minutos. Repítela cada pocas semanas para ver si mejoras de verdad.</p>
+      <button class="btn btn-primary btn-block" data-action="level-test" style="margin-top:10px">Hacer la prueba</button>
+    </section>`;
+  }
+  const score = combineScore(last.stations);
+  return `<section class="card">
+    <div class="whs">
+      ${ring(score, { size: 72, stroke: 8, center: String(score), label: `Última prueba de nivel: ${score} de 100` })}
+      <div class="grow"><h2>Prueba de nivel</h2>
+        <p class="small muted">Última: ${fmtDate(last.date)} · mejor marca ${best} de 100 · ${plural(tests.length, 'prueba', 'pruebas')}</p></div>
+    </div>
+    <button class="btn btn-block" data-action="level-test" style="margin-top:12px">Repetir la prueba</button>
+  </section>`;
+}
+
+function levelProgress() {
+  const tests = testsByDate();
+  if (!tests.length) return '';
+  const chrono = [...tests].reverse();
+  const last = tests[0];
+  const chart = chrono.length >= 2
+    ? lineChart(chrono.map((t) => ({ t: t.date, label: fmtDate(t.date), y: combineScore(t.stations) })), { min: 0, max: 100, label: 'Evolución de la prueba de nivel' })
+    : '<p class="small muted">Repite la prueba para ver tu evolución.</p>';
+  const rows = COMBINE.map((s) => {
+    const best = Math.max(...tests.map((t) => t.stations[s.id]));
+    return `<tr><td class="cat-${s.cat}"><span class="row">${catDot(s.cat)} ${s.name}</span></td>
+      <td class="right num">${last.stations[s.id]}/${COMBINE_BALLS}</td><td class="right num muted">${best}/${COMBINE_BALLS}</td></tr>`;
+  }).join('');
+  return `<div class="card"><h2>Prueba de nivel</h2>
+    ${chart}
+    <table class="tbl" style="margin-top:8px"><thead><tr><th>Estación</th><th class="right">Última</th><th class="right">Mejor</th></tr></thead><tbody>${rows}</tbody></table>
+  </div>`;
+}
+
+function openLevelTestSheet() {
+  openSheet(`<h2>Prueba de nivel</h2>
+    <p class="small muted">6 bolas por estación. Anota cuántas cumplen el criterio. Hazla siempre igual para poder comparar.</p>
+    <form class="stack" data-form="level">
+      ${COMBINE.map((s) => `<div class="cat-${s.cat}">
+        ${stepper(`st_${s.id}`, `${s.name}`, 0, 0, COMBINE_BALLS)}
+        <p class="small muted hint">${catDot(s.cat)} ${esc(s.task)} <strong>Acierto:</strong> ${esc(s.success)}</p>
+      </div>`).join('')}
+      <label class="field">Fecha<input type="date" name="date" value="${todayISO()}" max="${todayISO()}" required></label>
+      <button class="btn btn-primary btn-block">Guardar</button>
+    </form>`);
 }
 
 function renderDrill(id) {
@@ -439,13 +500,17 @@ function renderRounds() {
   const stat = (v, label, fmt = (x) => Math.round(x)) =>
     `<div class="stat"><div class="v">${v == null ? '–' : fmt(v)}</div><div class="l">${label}</div></div>`;
 
+  const sgOf = (r) => (r.holesData ? puttingGained(r.holesData) : null);
   const list = rounds.map((r) => {
     const s = roundStats(r);
+    const sg = sgOf(r);
     const bits = [
+      r.holesData && 'hoyo a hoyo',
       s.fwPct != null && `Calles ${Math.round(s.fwPct)}%`,
       s.girPct != null && `GIR ${Math.round(s.girPct)}%`,
       r.putts != null && `${r.putts} putts`,
       s.udPct != null && `U&D ${Math.round(s.udPct)}%`,
+      sg && `Putt ${fmtSigned(sg.value).replace('.', ',')} vs. ref. en ${plural(sg.holes, 'hoyo', 'hoyos')}`,
     ].filter(Boolean).join(' · ');
     return `<li><button class="item" data-action="edit-round" data-id="${r.id}">
       <span class="grow"><span class="name">${esc(r.course || 'Vuelta')} <span class="muted small">${r.holes} hoyos</span></span>
@@ -454,7 +519,15 @@ function renderRounds() {
     </button></li>`;
   }).join('');
 
+  // Putt frente a la referencia: media por vuelta, escalada a 18 hoyos, de las vueltas recientes con distancia en 9 hoyos o más.
+  const sgRecent = rounds.slice(0, 5).map(sgOf).filter((g) => g && g.holes >= 9); // con menos hoyos la cifra no es fiable
+  const sgLine = sgRecent.length
+    ? `<p class="small">Putt frente a la referencia profesional: <strong class="num">${fmtSigned(Math.round(mean(sgRecent.map((g) => (g.value / g.holes) * 18)) * 10) / 10).replace('.', ',')}</strong>
+        golpes por vuelta <span class="muted">(${plural(sgRecent.length, 'vuelta', 'vueltas')} con la distancia del primer putt en 9 hoyos o más; lo normal en amateurs es perder golpes)</span></p>`
+    : '';
+
   return `<div class="stack">
+    ${rounds.length ? handicapCard() : ''}
     ${rounds.length ? `<div class="card">
       <div class="card-title"><h2>${recent.length === 1 ? 'Tu última vuelta' : `Media de las últimas ${recent.length} vueltas`}</h2><span class="muted small">normalizado a 18 hoyos</span></div>
       <div class="grid3">
@@ -464,43 +537,146 @@ function renderRounds() {
         ${stat(avg('fwPct'), 'Calles %')}
         ${stat(avg('udPct'), 'Up & down %')}
         ${stat(mean(rounds.slice(0, 5).map((r) => (r.penalties == null ? null : r.penalties * (18 / r.holes)))), 'Penalidades', (x) => x.toFixed(1))}
-      </div></div>
+      </div>${sgLine}</div>
       <div class="card"><ul class="list">${list}</ul></div>`
     : `<div class="card empty">Aún no has registrado vueltas.<br>Con unas pocas, el plan de cada semana se adapta a donde pierdes golpes.</div>`}
     <div class="dock"><button class="btn btn-primary btn-block" data-action="new-round">Registrar vuelta</button></div>
   </div>`;
 }
 
+// Índice de hándicap calculado con las vueltas (WHS simplificado) y opción de llevarlo al perfil.
+function handicapCard() {
+  const st = getState();
+  const { index, eligible, used } = handicapIndex(st.rounds);
+  if (index == null) {
+    return `<div class="card hint-card"><h2>Tu hándicap, calculado</h2>
+      <p class="small">Añade la valoración y el slope del campo (en "Para el hándicap") a tus vueltas de 18 hoyos y la app calculará tu índice con el sistema WHS. Llevas ${eligible} de 3.</p></div>`;
+  }
+  const current = st.profile.handicap;
+  return `<section class="card">
+    <div class="whs">
+      ${ring(null, { size: 72, stroke: 8, center: fmtHcp(index), label: `Hándicap calculado: ${fmtHcp(index)}` })}
+      <div class="grow"><h2>Tu hándicap, calculado</h2>
+        <p class="small muted">Media de tus ${plural(used, 'mejor diferencial', 'mejores diferenciales')} de las últimas ${plural(eligible, 'vuelta', 'vueltas')} de 18 hoyos (WHS, sin el ajuste de doble bogey neto). En tu perfil: ${fmtHcp(current)}.</p></div>
+    </div>
+    ${index !== current ? `<button class="btn btn-block" data-action="use-hcp" data-v="${index}" style="margin-top:12px">Usar ${fmtHcp(index)} en mi perfil</button>` : ''}
+  </section>`;
+}
+
+// ── Vuelta hoyo a hoyo ──
+// Borrador de la hoja abierta: los hoyos y cuál se está editando. Un hoyo sin golpes aún no se ha jugado.
+let holeDraft = null;
+
+const courseByName = (name) => {
+  const key = name.trim().toLowerCase();
+  return key ? getState().courses.find((c) => c.name.toLowerCase() === key) : null;
+};
+const blankHoles = (n, pars) => Array.from({ length: n }, (_, i) =>
+  ({ par: pars?.length === n ? pars[i] : 4, score: null, putts: null, fw: null, pen: 0, putt1: null }));
+
+function holePanel() {
+  const { holes, i } = holeDraft;
+  const h = holes[i];
+  const played = holes.filter((x) => x.score != null);
+  const t = totalsFromHoles(played);
+  const radio = (name, value, label, checked) =>
+    `<label class="chip-check"><input type="radio" name="${name}" value="${value}" ${checked ? 'checked' : ''} data-change="hole-par"><span>${label}</span></label>`;
+  return `<div class="hole-nav" role="group" aria-label="Ir al hoyo">
+      ${holes.map((x, k) => `<button type="button" class="${k === i ? 'cur' : ''} ${x.score != null ? 'filled' : ''}" data-action="hole-go" data-i="${k}"
+        aria-label="Hoyo ${k + 1}${x.score != null ? `, ${x.score} golpes` : ''}" ${k === i ? 'aria-current="step"' : ''}>${k + 1}</button>`).join('')}
+    </div>
+    <div class="hole-card">
+      <div class="card-title"><h3>Hoyo ${i + 1} <span class="muted small">de ${holes.length}</span></h3>
+        <span class="small num">${played.length ? `${t.score} (${fmtSigned(t.score - t.par)}) en ${played.length}` : 'Sin hoyos jugados'}</span></div>
+      <fieldset><legend>Par</legend><div class="chips">${[3, 4, 5].map((p) => radio('h_par', p, `Par ${p}`, h.par === p)).join('')}</div></fieldset>
+      <div class="grid2">${stepper('h_score', 'Golpes', h.score ?? h.par, 1, 20)}${stepper('h_putts', 'Putts', h.putts ?? 2, 0, 10)}</div>
+      ${h.par >= 4 ? `<fieldset><legend>¿Cogiste la calle?</legend><div class="chips">
+        ${[['si', 'Sí'], ['no', 'No']].map(([v, l]) => `<label class="chip-check"><input type="radio" name="h_fw" value="${v}" ${h.fw === v ? 'checked' : ''}><span>${l}</span></label>`).join('')}
+      </div></fieldset>` : ''}
+      <div class="grid2">${stepper('h_pen', 'Penalidad', h.pen, 0, 10)}
+        <label class="field">Primer putt (m)<input name="h_putt1" inputmode="decimal" value="${h.putt1 != null ? String(h.putt1).replace('.', ',') : ''}" placeholder="Opcional" autocomplete="off"></label></div>
+      <div class="hole-actions">
+        <button type="button" class="btn" data-action="hole-go" data-i="${i - 1}" ${i === 0 ? 'disabled' : ''}>Anterior</button>
+        ${i < holes.length - 1
+          ? `<button type="button" class="btn btn-primary" data-action="hole-go" data-i="${i + 1}">Hoyo ${i + 2}</button>`
+          : '<button class="btn btn-primary">Guardar vuelta</button>'}
+      </div>
+    </div>`;
+}
+
+// Pasa al borrador lo que hay en los campos del hoyo actual.
+function syncHole(f) {
+  if (!holeDraft || !f.h_score) return;
+  const h = holeDraft.holes[holeDraft.i];
+  h.par = Number(f.querySelector('[name="h_par"]:checked')?.value) || h.par;
+  h.score = num(f.h_score.value);
+  h.putts = num(f.h_putts.value);
+  h.pen = num(f.h_pen.value) ?? 0;
+  h.fw = h.par >= 4 ? f.querySelector('[name="h_fw"]:checked')?.value ?? null : null;
+  const p1 = Number(f.h_putt1.value.trim().replace(',', '.'));
+  h.putt1 = f.h_putt1.value.trim() && p1 > 0 && p1 <= 60 ? p1 : null;
+}
+
+function renderHolePanel(f) {
+  const panel = f.querySelector('.hole-panel');
+  panel.innerHTML = holeDraft && f.dataset.mode === 'hoyos' ? holePanel() : '';
+}
+
 function openRoundSheet(id) {
-  const r = id ? getState().rounds.find((x) => x.id === id) : null;
+  const st = getState();
+  const r = id ? st.rounds.find((x) => x.id === id) : null;
+  const mode = r ? (r.holesData ? 'hoyos' : 'totales') : 'totales';
+  const n = r?.holes ?? 18;
+  holeDraft = { holes: r?.holesData ? structuredClone(r.holesData) : blankHoles(n, courseByName(r?.course ?? '')?.pars), i: 0 };
   const v = (k, def = '') => esc(r?.[k] ?? def);
-  const n = (name, label, def = '', extra = '') =>
-    `<label class="field">${label}<input type="number" inputmode="numeric" name="${name}" value="${v(name, def)}" min="0" ${extra}></label>`;
+  const field = (name, label, def = '') =>
+    `<label class="field">${label}<input type="number" inputmode="numeric" name="${name}" value="${v(name, def)}" min="0"></label>`;
   const hasStats = r && ['fairways', 'gir', 'putts', 'udAtt', 'udMade'].some((k) => r[k] != null) || (r?.penalties ?? 0) > 0;
+  const seg = (value, label) =>
+    `<label class="chip-check"><input type="radio" name="mode" value="${value}" ${mode === value ? 'checked' : ''} data-change="round-mode"><span>${label}</span></label>`;
   openSheet(`<h2>${r ? 'Editar vuelta' : 'Nueva vuelta'}</h2>
-    <form class="stack" data-form="round" data-id="${r?.id ?? ''}">
+    <form class="stack" data-form="round" data-id="${r?.id ?? ''}" data-mode="${mode}">
+      <fieldset><legend>Cómo apuntarla</legend><div class="chips">${seg('totales', 'Totales')}${seg('hoyos', 'Hoyo a hoyo')}</div></fieldset>
       <div class="grid2">
         <label class="field">Fecha<input type="date" name="date" value="${v('date', todayISO())}" max="${todayISO()}" required></label>
         <label class="field">Hoyos<select name="holes" data-change="holes">
-          <option value="18" ${String(r?.holes ?? 18) === '18' ? 'selected' : ''}>18</option>
-          <option value="9" ${String(r?.holes) === '9' ? 'selected' : ''}>9</option></select></label>
+          <option value="18" ${n === 18 ? 'selected' : ''}>18</option>
+          <option value="9" ${n === 9 ? 'selected' : ''}>9</option></select></label>
       </div>
-      <label class="field">Campo<input name="course" value="${v('course')}" placeholder="Nombre del campo" autocomplete="off"></label>
-      <div class="grid2">${n('score', 'Golpes', '', 'required')}${n('par', 'Par del campo', 72)}</div>
-      <details class="group" ${hasStats ? 'open' : ''}>
-        <summary><strong>Estadísticas</strong> <span class="muted small">· opcional, afinan tu plan</span></summary>
+      <label class="field">Campo<input name="course" value="${v('course')}" placeholder="Nombre del campo" autocomplete="off" list="courses-list" data-change="round-course"></label>
+      <datalist id="courses-list">${st.courses.map((c) => `<option value="${esc(c.name)}">`).join('')}</datalist>
+      <div class="mode-totales stack">
+        <div class="grid2">${field('score', 'Golpes')}${field('par', 'Par del campo', 72)}</div>
+        <details class="group" ${hasStats ? 'open' : ''}>
+          <summary><strong>Estadísticas</strong> <span class="muted small">· opcional, afinan tu plan</span></summary>
+          <div class="stack group-body">
+            <div class="grid2">${field('fairways', 'Calles cogidas')}${field('fwPossible', 'Calles posibles', 14)}</div>
+            <div class="grid2">${field('gir', 'Greens en regulación (GIR)')}${field('putts', 'Putts')}</div>
+            <p class="small muted">Up & down: veces que fallaste el green y aun así hiciste par o mejor.</p>
+            <div class="grid2">${field('udAtt', 'Up & down: intentos')}${field('udMade', 'Up & down: conseguidos')}</div>
+            ${field('penalties', 'Golpes de penalidad', 0)}
+          </div>
+        </details>
+      </div>
+      <div class="mode-hoyos">
+        <p class="small muted">Golpes y putts de cada hoyo; los greens en regulación y los up & down se calculan solos. La distancia del primer putt, si la apuntas, compara tu putt con una referencia profesional.</p>
+        <div class="hole-panel"></div>
+      </div>
+      <details class="group" ${r?.rating != null ? 'open' : ''}>
+        <summary><strong>Para el hándicap</strong> <span class="muted small">· vueltas de 18 hoyos</span></summary>
         <div class="stack group-body">
-          <div class="grid2">${n('fairways', 'Calles cogidas')}${n('fwPossible', 'Calles posibles', 14)}</div>
-          <div class="grid2">${n('gir', 'Greens en regulación (GIR)')}${n('putts', 'Putts')}</div>
-          <p class="small muted">Up & down: veces que fallaste el green y aun así hiciste par o mejor.</p>
-          <div class="grid2">${n('udAtt', 'Up & down: intentos')}${n('udMade', 'Up & down: conseguidos')}</div>
-          ${n('penalties', 'Golpes de penalidad', 0)}
+          <p class="small muted">Valoración y slope de las barras desde las que jugaste; vienen en la tarjeta del campo.</p>
+          <div class="grid2">
+            <label class="field">Valoración<input name="rating" inputmode="decimal" value="${r?.rating != null ? String(r.rating).replace('.', ',') : ''}" placeholder="Ej.: 71,2" autocomplete="off"></label>
+            <label class="field">Slope<input type="number" inputmode="numeric" name="slope" value="${v('slope')}" placeholder="Ej.: 128" min="55" max="155"></label>
+          </div>
         </div>
       </details>
       <label class="field">Notas<textarea name="notes" rows="2">${v('notes')}</textarea></label>
       <button class="btn btn-primary btn-block">Guardar</button>
       ${r ? `<button type="button" class="btn btn-danger btn-block" data-action="del-round" data-id="${r.id}">Borrar vuelta</button>` : ''}
     </form>`);
+  renderHolePanel(sheet.querySelector('form'));
 }
 
 // ── Distancias ──
@@ -645,6 +821,7 @@ function renderProgress() {
       <p class="small muted">Cuánto del objetivo alcanzas en los últimos 30 días (100% = justo en el objetivo) y el cambio frente a los 30 días anteriores, en puntos porcentuales (pp).</p>
       <div class="area-rings">${catRows}</div>
     </div>
+    ${levelProgress()}
     <div class="card"><h2>Vueltas</h2>
       ${roundCharts || '<p class="small muted">Registra al menos dos vueltas para ver tendencias.</p>'}</div>
   </div>`;
@@ -767,10 +944,29 @@ const actions = {
     const input = f.elements[el.dataset.name];
     let v = Math.max(Number(el.dataset.min), (Number(input.value) || 0) + Number(el.dataset.delta));
     if (el.dataset.name === 'successes' && f.elements.attempts) v = Math.min(v, Number(f.elements.attempts.value) || v);
+    if (el.dataset.max) v = Math.min(v, Number(el.dataset.max));
     input.value = v;
     sheet.dataset.dirty = '1';
   },
   log(el) { openLogSheet(el.dataset.drill, el.dataset.day, el.dataset.idx); },
+  'level-test'() { openLevelTestSheet(); },
+  async 'use-hcp'(el) {
+    const v = Number(el.dataset.v);
+    if (!(await ask(`¿Usar ${fmtHcp(v)} como hándicap en tu perfil?`, { ok: 'Usar', detail: 'El plan de esta semana se recalcula; las marcas de los ejercicios que sigan en él se conservan.' }))) return;
+    update((s) => {
+      s.profile.handicap = v;
+      s.plan = carryTicks(s.plan, generatePlan(s.profile, s.rounds, s.sessions, hashStr(weekKey() + Date.now())));
+    });
+    render({ keepScroll: true });
+    toast('Hándicap actualizado y plan recalculado');
+  },
+  'hole-go'(el) {
+    const f = el.closest('form');
+    syncHole(f);
+    holeDraft.i = Math.max(0, Math.min(holeDraft.holes.length - 1, Number(el.dataset.i)));
+    renderHolePanel(f);
+    f.querySelector('.hole-card h3')?.scrollIntoView({ block: 'nearest' });
+  },
   filter(el) { drillFilter = el.dataset.cat; render({ keepScroll: true }); },
   async 'regen-plan'() {
     if (!(await ask('¿Generar un plan distinto para esta semana?', { ok: 'Generar', detail: 'Tus registros se conservan, y también las marcas de los ejercicios que sigan en el plan.' }))) return;
@@ -868,9 +1064,32 @@ const forms = {
     toast(`${p}% guardado. Te faltaron ${plural(need, 'acierto', 'aciertos')} para el ${d.target}%.`);
   },
   round(f) {
-    const fields = ['holes', 'par', 'score', 'fairways', 'fwPossible', 'gir', 'putts', 'udAtt', 'udMade', 'penalties'];
-    const r = { id: f.dataset.id || uid(), date: f.date.value, course: f.course.value.trim(), notes: f.notes.value.trim() };
-    for (const k of fields) r[k] = num(f[k].value);
+    const r = { id: f.dataset.id || uid(), date: f.date.value, course: f.course.value.trim(), notes: f.notes.value.trim(), holes: Number(f.holes.value) };
+    const byHole = f.dataset.mode === 'hoyos';
+    if (byHole) {
+      syncHole(f);
+      const missing = holeDraft.holes.map((h, i) => (h.score == null ? i + 1 : null)).filter(Boolean);
+      if (missing.length) {
+        holeDraft.i = missing[0] - 1;
+        renderHolePanel(f);
+        return toast(`Faltan los golpes ${missing.length === 1 ? 'del hoyo' : 'de los hoyos'} ${missing.slice(0, 6).join(', ')}${missing.length > 6 ? '…' : ''}`);
+      }
+      Object.assign(r, totalsFromHoles(holeDraft.holes), { holesData: structuredClone(holeDraft.holes) });
+    } else {
+      for (const k of ['par', 'score', 'fairways', 'fwPossible', 'gir', 'putts', 'udAtt', 'udMade', 'penalties']) r[k] = num(f[k].value);
+      if (r.score == null) return toast('Escribe los golpes de la vuelta');
+    }
+    const ratingText = f.rating.value.trim().replace(',', '.');
+    if (ratingText) {
+      const rating = Number(ratingText);
+      if (!(rating >= 30 && rating <= 90)) return toast('La valoración del campo suele estar entre 60 y 80 (p. ej. 71,2)');
+      r.rating = Math.round(rating * 10) / 10;
+    }
+    if (f.slope.value !== '') {
+      const slope = Number(f.slope.value);
+      if (!(Number.isInteger(slope) && slope >= 55 && slope <= 155)) return toast('El slope va de 55 a 155');
+      r.slope = slope;
+    }
     if (r.udMade != null && r.udAtt != null && r.udMade > r.udAtt) return toast('Up & down: conseguidos no puede superar intentos');
     if (r.fairways != null && r.fwPossible != null && r.fairways > r.fwPossible) return toast('Calles cogidas no puede superar las posibles');
     if (r.gir != null && r.gir > r.holes) return toast('GIR no puede superar el número de hoyos');
@@ -881,10 +1100,35 @@ const forms = {
     update((s) => {
       const i = s.rounds.findIndex((x) => x.id === r.id);
       if (i >= 0) s.rounds[i] = r; else s.rounds.push(r);
+      // Recuerda el campo para la próxima vuelta: pares (si se apuntó hoyo a hoyo), valoración y slope.
+      if (r.course) {
+        let c = s.courses.find((x) => x.name.toLowerCase() === r.course.toLowerCase());
+        if (!c) { c = { name: r.course.slice(0, 80) }; s.courses.unshift(c); s.courses.splice(100); }
+        if (r.holesData) c.pars = r.holesData.map((h) => h.par);
+        if (r.holes === 18 && r.rating != null) c.rating = r.rating;
+        if (r.holes === 18 && r.slope != null) c.slope = r.slope;
+      }
     });
     closeSheet();
     render({ keepScroll: true });
     toast(isNew ? 'Vuelta guardada. Contará en el plan del próximo lunes.' : 'Vuelta actualizada');
+  },
+  level(f) {
+    const stations = {};
+    for (const s of COMBINE) {
+      const v = Number(f[`st_${s.id}`].value);
+      if (!(Number.isInteger(v) && v >= 0 && v <= COMBINE_BALLS)) return toast(`${s.name}: escribe un número de 0 a ${COMBINE_BALLS}`);
+      stations[s.id] = v;
+    }
+    const prevBest = getState().tests.reduce((m, t) => Math.max(m, combineScore(t.stations)), -1);
+    update((s) => { s.tests.push({ id: uid(), date: f.date.value, stations }); });
+    closeSheet();
+    render({ keepScroll: true });
+    const score = combineScore(stations);
+    if (prevBest >= 0 && score > prevBest) {
+      return celebrate({ title: '¡Nueva mejor marca!', detail: `Prueba de nivel: ${score} de 100 (antes ${prevBest})`, value: score, center: String(score) });
+    }
+    toast(prevBest < 0 ? `Prueba guardada: ${score} de 100. Repítela en unas semanas.` : `Prueba guardada: ${score} de 100 (mejor marca ${prevBest})`);
   },
   shots(f) {
     const { values, bad } = parseCarries(f.values.value);
@@ -937,6 +1181,35 @@ const changes = {
     const other = holes === 9 ? 18 : 9;
     if (f.par.value === '' || Number(f.par.value) === other * 4) f.par.value = holes * 4;
     if (f.fwPossible.value === '' || Number(f.fwPossible.value) === (other === 18 ? 14 : 7)) f.fwPossible.value = holes === 18 ? 14 : 7;
+    // Hoyo a hoyo: conserva los hoyos ya apuntados y ajusta la lista al nuevo número.
+    syncHole(f);
+    const pars = courseByName(f.course.value)?.pars;
+    holeDraft.holes = [...holeDraft.holes.slice(0, holes), ...blankHoles(holes, pars).slice(holeDraft.holes.length)].slice(0, holes);
+    holeDraft.i = Math.min(holeDraft.i, holes - 1);
+    renderHolePanel(f);
+  },
+  'round-mode'(el) {
+    const f = el.form;
+    syncHole(f);
+    f.dataset.mode = el.value;
+    renderHolePanel(f);
+  },
+  // Al elegir un campo guardado, rellena valoración, slope y los pares de los hoyos aún sin jugar.
+  'round-course'(el) {
+    const f = el.form;
+    const c = courseByName(el.value);
+    if (!c) return;
+    if (f.rating.value === '' && c.rating != null) f.rating.value = String(c.rating).replace('.', ',');
+    if (f.slope.value === '' && c.slope != null) f.slope.value = c.slope;
+    if (c.pars?.length === holeDraft.holes.length) {
+      syncHole(f);
+      holeDraft.holes.forEach((h, i) => { if (h.score == null) h.par = c.pars[i]; });
+      renderHolePanel(f);
+    }
+  },
+  'hole-par'(el) {
+    syncHole(el.form);
+    renderHolePanel(el.form);
   },
   async import(el) {
     const file = el.files[0];

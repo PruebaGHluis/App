@@ -22,7 +22,10 @@ App web instalable en el móvil (PWA) para seguir un plan de entrenamiento de go
 
 - **Plan semanal**: se genera automáticamente según tu hándicap, tus días y tiempo disponibles, tus puntos débiles, tus últimas vueltas y tus resultados en los ejercicios. Te dice qué toca hoy y por qué.
 - **Ejercicios**: 20 ejercicios de juego largo, approach, juego corto, bunker y putt, cada uno con un criterio de acierto y un objetivo en %.
-- **Vueltas**: golpes, calles, greens en regulación, putts, up & down y penalidades, de 9 o 18 hoyos.
+- **Vueltas**: por totales o hoyo a hoyo (los greens en regulación y los up & down se calculan solos), de 9 o 18 hoyos. La app recuerda los pares, la valoración y el slope de cada campo.
+- **Hándicap calculado**: índice WHS a partir de tus vueltas de 18 hoyos con valoración y slope (simplificado: sin ajuste de doble bogey neto).
+- **Putt frente a una referencia**: si apuntas la distancia del primer putt, compara tus putts con una referencia profesional aproximada (tablas de Mark Broadie).
+- **Prueba de nivel**: 30 bolas en 5 estaciones, siempre iguales, con una puntuación de 0 a 100 para medir tu evolución.
 - **Distancias**: media, dispersión y rango por palo.
 - **Progreso**: evolución por ejercicio, anillos de rendimiento por área y tendencias de tus vueltas.
 - **Celebraciones** al cumplir un objetivo, completar la sesión del día o la semana.

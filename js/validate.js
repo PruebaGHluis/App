@@ -39,11 +39,37 @@ function session(s) {
   return { id: s.id, date: s.date, drillId: s.drillId, attempts, successes, notes: str(s.notes, 500) };
 }
 
+// Datos de un hoyo; si alguno no es válido se descarta el detalle hoyo a hoyo, no la vuelta.
+function hole(x) {
+  x = obj(x);
+  const par = int(x?.par, 3, 6);
+  if (par == null) return null;
+  const score = x.score == null ? null : int(x.score, 1, 20);
+  const putts = x.putts == null ? null : int(x.putts, 0, 10);
+  const putt1 = x.putt1 == null ? null : num(x.putt1, 0.1, 60);
+  if ((x.score != null && score == null) || (x.putts != null && putts == null) || (x.putt1 != null && putt1 == null)) return null;
+  return { par, score, putts, fw: x.fw === 'si' || x.fw === 'no' ? x.fw : null, pen: int(x.pen, 0, 10) ?? 0, putt1 };
+}
+
+function holesData(arr, n) {
+  if (!Array.isArray(arr) || arr.length !== n) return undefined;
+  const out = arr.map(hole);
+  return out.every(Boolean) ? out : undefined;
+}
+
+const rating = (v) => num(v, 30, 90);
+const slope = (v) => int(v, 55, 155);
+
 function round(r) {
   r = obj(r);
   if (!r || !id(r.id) || !date(r.date) || (r.holes !== 9 && r.holes !== 18)) return null;
   const h = r.holes;
   const udAtt = int(r.udAtt, 0, h);
+  const extra = {};
+  if (rating(r.rating) != null) extra.rating = r.rating;
+  if (slope(r.slope) != null) extra.slope = r.slope;
+  const detail = holesData(r.holesData, h);
+  if (detail) extra.holesData = detail;
   return {
     id: r.id, date: r.date, course: str(r.course, 80), holes: h,
     par: int(r.par, h * 3, h * 5),
@@ -56,7 +82,38 @@ function round(r) {
     udMade: int(r.udMade, 0, udAtt ?? h),
     penalties: int(r.penalties, 0, h * 10),
     notes: str(r.notes, 500),
+    ...extra,
   };
+}
+
+// Campos guardados para rellenar pares, valoración y slope en la siguiente vuelta.
+function course(c) {
+  c = obj(c);
+  const name = str(c?.name, 80).trim();
+  if (!c || !name) return null;
+  const out = { name };
+  if (c.pars != null) {
+    const pars = list(c.pars).map((p) => int(p, 3, 6));
+    if (![9, 18].includes(pars.length) || pars.some((p) => p == null)) return null;
+    out.pars = pars;
+  }
+  if (rating(c.rating) != null) out.rating = c.rating;
+  if (slope(c.slope) != null) out.slope = c.slope;
+  return out;
+}
+
+// Prueba de nivel: cinco estaciones de 6 bolas.
+const STATIONS = ['puttCorto', 'puttLargo', 'chip', 'wedge', 'salida'];
+function levelTest(t) {
+  t = obj(t);
+  const st = obj(t?.stations);
+  if (!t || !id(t.id) || !date(t.date) || !st) return null;
+  const stations = {};
+  for (const k of STATIONS) {
+    stations[k] = int(st[k], 0, 6);
+    if (stations[k] == null) return null;
+  }
+  return { id: t.id, date: t.date, stations };
 }
 
 function shot(s) {
@@ -105,11 +162,13 @@ export function sanitizeState(raw) {
     sessions: clean(data.sessions, session),
     rounds: clean(data.rounds, round),
     shots: clean(data.shots, shot),
+    tests: clean(data.tests, levelTest),
+    courses: clean(data.courses, course).slice(0, 100),
     plan: plan(data.plan),
   };
   const lw = lastWeek(data.lastWeek);
   if (lw) state.lastWeek = lw;
-  const dropped = ['sessions', 'rounds', 'shots']
+  const dropped = ['sessions', 'rounds', 'shots', 'tests']
     .reduce((n, k) => n + list(data[k]).length - state[k].length, 0);
   return { state, dropped };
 }

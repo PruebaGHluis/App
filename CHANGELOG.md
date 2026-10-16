@@ -4,6 +4,18 @@ Los cambios importantes de Golf Plan. El formato sigue [Keep a Changelog](https:
 
 ## [Sin publicar]
 
+### Añadido
+- Vueltas hoyo a hoyo: par, golpes, putts, calle, penalidad y distancia del primer putt por hoyo; los totales, greens en regulación y up & down se calculan solos.
+- Campos guardados: pares, valoración y slope se rellenan al elegir un campo ya jugado.
+- Índice de hándicap WHS calculado con las vueltas de 18 hoyos que tienen valoración y slope, con opción de llevarlo al perfil.
+- Putt frente a una referencia profesional aproximada a partir de la distancia del primer putt.
+- Prueba de nivel: 5 estaciones de 6 bolas con puntuación de 0 a 100, en Ejercicios y Progreso, y celebración al batir la mejor marca.
+- Tests de los cálculos de golf (`tests/golf.test.js`) y de los datos nuevos en la validación.
+- `.gitattributes` para fijar finales de línea LF.
+
+### Cambiado
+- La hoja inferior y la celebración ya no aparecen con fundido: son visibles desde el primer frame.
+
 ## [1.1.0] - 2026-10-16
 
 ### Añadido

@@ -360,11 +360,17 @@ El gesto propio. SVG generado: pista en `line`, arco en `primary` desde las 12 e
 ### Plan Rows
 Filas de lista separadas por línea de 1 px: a la izquierda un check circular vacío de 26 px (pendiente) o el anillo de 30 px (hecho); nombre a 650 con metadatos (punto de área, minutos, intentos) en 0.82rem; a la derecha, "Registrar" pequeño o el porcentaje en Saira Condensed tabular, en `ok-text` si se cumplió (aciertos e intentos van en el texto accesible). Recién registrada, la fila hace un pop de 0.45 s en el anillo.
 
+### Ring Row (anillo + texto)
+Fila de anillo de 72 px y bloque de texto (título y una línea `muted`) separados 16 px. Se usa para el hándicap calculado (anillo sin arco, cifra en el centro) y la prueba de nivel (arco = puntuación sobre 100); la acción va debajo, a ancho completo.
+
+### Hole Entry (vuelta hoyo a hoyo)
+Rejilla de 9 columnas con un botón por hoyo (36 px de alto, radio 8): vacío con borde `line-strong`, jugado en `surface-2`, actual en tinta invertida. Debajo, una tarjeta por hoyo con par en chips, golpes y putts en steppers, calle Sí/No solo en pares 4 y 5, penalidad y primer putt opcional; abajo, "Anterior" y "Hoyo N" (o "Guardar vuelta" en el último) a partes iguales. El total parcial y el resultado frente al par van en la cabecera de la tarjeta.
+
 ### Dock
 Acción principal fija sobre las pestañas, ancho de columna, botón primario de 50 px a 1.02rem, sobre degradado de transparente a `bg`.
 
 ### Bottom Sheet
-Panel en `bg` desde abajo, esquinas superiores de 20 px, 92 vh como máximo, asa de 40 × 4 px y botón de cierre circular de 40 px arriba a la derecha. Entra con 30 px de desplazamiento en 0.22 s; velo de tinta al 55 %. El resto de la app queda inerte mientras está abierto.
+Panel en `bg` desde abajo, esquinas superiores de 20 px, 92 vh como máximo, asa de 40 × 4 px y botón de cierre circular de 40 px arriba a la derecha. Entra con 30 px de desplazamiento en 0.22 s, sin fundido (visible desde el primer frame); velo de tinta al 55 %, también sin fundido. El resto de la app queda inerte mientras está abierto.
 
 ### Confirm Dialog
 `<dialog>` nativo de hasta 400 px, 18 px de radio, 20 px de relleno, mensaje a 750. Dos botones a partes iguales: "Cancelar" (secundario, con foco inicial) y la acción en primario o rojo sólido si es destructiva.
