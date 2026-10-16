@@ -409,7 +409,6 @@ details.group .group-body { padding: 6px 0 12px; }
   padding: 24px; text-align: center; cursor: pointer;
   background: var(--shell); color: var(--on-shell);
   --text: var(--on-shell); --line: var(--shell-line); --win-bg: var(--volt); --win-fg: var(--on-volt);
-  animation: fade .2s ease-out;
 }
 .celebrate[hidden] { display: none; }
 .celebrate .burst { position: relative; width: 200px; height: 200px; display: grid; place-items: center; }
