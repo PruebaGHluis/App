@@ -1,0 +1,36 @@
+# OpenSSF Scorecard: puntúa las prácticas de seguridad del repositorio y publica el resultado
+# en la pestaña Security y en api.securityscorecards.dev (para la insignia del README).
+name: Scorecard
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "29 6 * * 1"
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: scorecard
+          path: results.sarif
+          retention-days: 5
+      - uses: github/codeql-action/upload-sarif@ce5e7eeac396d720fe2d802714996c8ce561e311 # v3.39.0
+        with:
+          sarif_file: results.sarif

@@ -1,0 +1,13 @@
+# Mantiene al día las acciones de GitHub Actions (fijadas por hash) con un pull request semanal.
+# La app no tiene dependencias de npm; si algún día las tiene, añade aquí el ecosistema "npm".
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci"

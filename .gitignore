@@ -1,3 +1,9 @@
 .claude/settings.local.json
 Thumbs.db
 .DS_Store
+
+# Ejecutables de Impeccable: el lanzador los descarga si faltan; no se versionan.
+.claude/skills/impeccable/scripts/bin/
+
+# Archivos de trabajo de Impeccable
+.impeccable/live/

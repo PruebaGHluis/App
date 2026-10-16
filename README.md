@@ -1,6 +1,8 @@
 # Golf Plan
 
 [![CI y publicación](https://github.com/PruebaGHluis/App/actions/workflows/ci.yml/badge.svg)](https://github.com/PruebaGHluis/App/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/PruebaGHluis/App/actions/workflows/codeql.yml/badge.svg)](https://github.com/PruebaGHluis/App/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/PruebaGHluis/App/badge)](https://scorecard.dev/viewer/?uri=github.com/PruebaGHluis/App)
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-0b6a3c)](LICENSE)
 
 App web instalable en el móvil (PWA) para seguir un plan de entrenamiento de golf. Pensada para jugadores de nivel medio y avanzado que entrenan por su cuenta.
@@ -71,6 +73,14 @@ Si cambias archivos de la app, sube la versión de `CACHE` en `sw.js` para que l
 | `fonts/` | Saira Condensed, autoalojada |
 | `tests/` | Tests con `node:test` |
 | `DESIGN.md`, `PRODUCT.md` | Sistema visual y descripción del producto |
+
+## Contribuir y seguridad
+
+- Errores y propuestas: [CONTRIBUTING.md](CONTRIBUTING.md).
+- Vulnerabilidades: [SECURITY.md](SECURITY.md) (por aviso privado, no en issues).
+- Cambios de cada versión: [CHANGELOG.md](CHANGELOG.md).
+
+Cada cambio en `main` pasa por los tests, el análisis de CodeQL y OpenSSF Scorecard. Dependabot mantiene al día las acciones de GitHub, que van fijadas por hash.
 
 ## Licencia
 
