@@ -29,16 +29,29 @@ function toast(msg) {
   toast.timer = setTimeout(() => t.classList.remove('show'), 2600);
 }
 
+const CLOSE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+let sheetOpener = null;
+
 function openSheet(html) {
+  if (sheet.hidden) sheetOpener = document.activeElement;
   sheet.innerHTML = `<div class="sheet-backdrop" data-action="close-sheet"></div>
-    <div class="sheet-panel" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div>`;
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1">
+      <div class="grab"></div>
+      <button type="button" class="x-btn sheet-close" data-action="close-sheet" aria-label="Cerrar">${CLOSE_SVG}</button>
+      ${html}</div>`;
+  sheet.querySelector('.sheet-panel h2')?.setAttribute('id', 'sheet-title');
   sheet.hidden = false;
   document.body.style.overflow = 'hidden';
+  document.querySelectorAll('.topbar, #view, .tabbar').forEach((el) => { el.inert = true; });
+  sheet.querySelector('.sheet-panel').focus();
 }
 function closeSheet() {
   sheet.hidden = true;
   sheet.innerHTML = '';
   document.body.style.overflow = '';
+  document.querySelectorAll('.topbar, #view, .tabbar').forEach((el) => { el.inert = false; });
+  if (sheetOpener?.isConnected) sheetOpener.focus();
+  sheetOpener = null;
 }
 
 const catDot = (cat) => `<span class="dot cat-${cat}" aria-hidden="true"></span>`;
@@ -52,9 +65,9 @@ function resultBadge(successes, attempts, target) {
 function stepper(name, label, value, min = 0) {
   return `<div class="field"><span>${label}</span>
     <div class="stepper">
-      <button type="button" data-action="step" data-name="${name}" data-delta="-1" data-min="${min}" aria-label="Restar">−</button>
+      <button type="button" data-action="step" data-name="${name}" data-delta="-1" data-min="${min}" aria-label="Restar ${label.toLowerCase()}">−</button>
       <input type="number" inputmode="numeric" name="${name}" value="${value}" min="${min}" required>
-      <button type="button" data-action="step" data-name="${name}" data-delta="1" data-min="${min}" aria-label="Sumar">+</button>
+      <button type="button" data-action="step" data-name="${name}" data-delta="1" data-min="${min}" aria-label="Sumar ${label.toLowerCase()}">+</button>
     </div></div>`;
 }
 
@@ -69,6 +82,35 @@ function ensurePlan() {
 }
 
 const sessionById = (id) => getState().sessions.find((s) => s.id === id);
+const isTicked = (it) => !!(it.sessionId && sessionById(it.sessionId));
+
+// Marca en el plan el ejercicio de un registro. Si no viene de un día concreto (p. ej. desde la ficha
+// del ejercicio), usa el hueco pendiente de ese ejercicio en el día del registro, o el primero de la semana.
+function linkToPlan(plan, session, day, idx) {
+  if (!plan) return;
+  const explicit = day !== '' && day != null ? plan.days[day]?.items[idx] : null;
+  if (explicit?.drillId === session.drillId) { explicit.sessionId = session.id; return; }
+  const offset = Math.round((new Date(session.date + 'T00:00:00') - new Date(plan.week + 'T00:00:00')) / 864e5);
+  if (offset < 0 || offset > 6) return;
+  const free = plan.days.flatMap((d) => d.items
+    .filter((it) => it.drillId === session.drillId && !isTicked(it))
+    .map((it) => ({ dow: d.dow, it })));
+  const pick = free.find((x) => x.dow === offset) || free[0];
+  if (pick) pick.it.sessionId = session.id;
+}
+
+// Al regenerar el plan de la misma semana, conserva las marcas de los ejercicios que siguen en él.
+function carryTicks(oldPlan, plan) {
+  if (!oldPlan || oldPlan.week !== plan.week) return plan;
+  const done = oldPlan.days.flatMap((d) => d.items.filter(isTicked).map((it) => ({ dow: d.dow, ...it })));
+  const slots = plan.days.flatMap((d) => d.items.map((it) => ({ dow: d.dow, it })));
+  for (const t of done) {
+    const match = slots.find((s) => !s.it.sessionId && s.it.drillId === t.drillId && s.dow === t.dow)
+      || slots.find((s) => !s.it.sessionId && s.it.drillId === t.drillId);
+    if (match) match.it.sessionId = t.sessionId;
+  }
+  return plan;
+}
 
 function renderPlan() {
   const st = getState();
@@ -112,7 +154,7 @@ function renderPlan() {
           <span class="meta row">${catDot(d.cat)} ${CATEGORIES[d.cat].short} · ${d.minutes} min · ${d.attempts} intentos</span></span>
         </button>
         ${s ? resultBadge(s.successes, s.attempts, d.target)
-            : `<button class="btn btn-sm ${isToday ? 'btn-primary' : ''}" data-action="log" data-drill="${d.id}" data-day="${di}" data-idx="${ii}">Registrar</button>`}
+            : `<button class="btn btn-sm ${isToday ? 'btn-primary' : ''}" data-action="log" data-drill="${d.id}" data-day="${di}" data-idx="${ii}" aria-label="Registrar ${esc(d.name)}">Registrar</button>`}
       </div></li>`;
     }).join('');
     return `<section class="card ${isToday ? 'today' : ''}" ${isPast && !isToday ? 'style="opacity:.75"' : ''}>
@@ -193,7 +235,7 @@ function renderDrill(id) {
     </div>
     <button class="btn btn-primary btn-block" data-action="log" data-drill="${d.id}">Registrar resultado</button>
     ${history.length ? `<div class="card">
-      <div class="card-title"><h3>Historial</h3>${avg != null ? `<span class="badge num">Media últimas 5: ${Math.round(avg)}%</span>` : ''}</div>
+      <div class="card-title"><h2>Historial</h2>${avg != null ? `<span class="badge num">Media últimas 5: ${Math.round(avg)}%</span>` : ''}</div>
       ${chart}
       <ul class="list">${history.map((s) => `<li><div class="item">
         <span class="grow"><span class="name">${fmtDate(s.date, { weekday: 'short', day: 'numeric', month: 'short' })}</span>
@@ -207,10 +249,15 @@ function renderDrill(id) {
 
 function openLogSheet(drillId, day, idx) {
   const d = drillById(drillId);
+  // Si se registra un día pasado del plan, la fecha por defecto es ese día.
+  const plan = getState().plan;
+  const planDay = day != null && day !== '' ? plan?.days[day] : null;
+  const planDate = planDay ? addDays(plan.week, planDay.dow) : null;
+  const date = planDate && planDate < todayISO() ? planDate : todayISO();
   openSheet(`<h2>${esc(d.name)}</h2>
     <p class="small muted">Acierto: ${esc(d.success)}</p>
     <form class="stack" data-form="session" data-drill="${d.id}" data-day="${day ?? ''}" data-idx="${idx ?? ''}">
-      <label class="field">Fecha<input type="date" name="date" value="${todayISO()}" max="${todayISO()}" required></label>
+      <label class="field">Fecha<input type="date" name="date" value="${date}" max="${todayISO()}" required></label>
       <div class="grid2">${stepper('attempts', 'Intentos', d.attempts, 1)}${stepper('successes', 'Aciertos', 0)}</div>
       <label class="field">Notas (opcional)<textarea name="notes" rows="2" placeholder="Sensaciones, viento, qué falló…"></textarea></label>
       <button class="btn btn-primary btn-block">Guardar</button>
@@ -243,7 +290,7 @@ function renderRounds() {
   return `<div class="stack">
     <button class="btn btn-primary btn-block" data-action="new-round">+ Registrar vuelta</button>
     ${rounds.length ? `<div class="card">
-      <div class="card-title"><h3>Media últimas ${recent.length} vueltas</h3><span class="muted small">normalizado a 18 hoyos</span></div>
+      <div class="card-title"><h2>${recent.length === 1 ? 'Tu última vuelta' : `Media de las últimas ${recent.length} vueltas`}</h2><span class="muted small">normalizado a 18 hoyos</span></div>
       <div class="grid3">
         ${stat(avg('overPar18'), 'Sobre par', fmtSigned)}
         ${stat(avg('putts18'), 'Putts', (x) => x.toFixed(1))}
@@ -253,7 +300,7 @@ function renderRounds() {
         ${stat(mean(rounds.slice(0, 5).map((r) => (r.penalties == null ? null : r.penalties * (18 / r.holes)))), 'Penalidades', (x) => x.toFixed(1))}
       </div></div>
       <div class="card"><ul class="list">${list}</ul></div>`
-    : `<div class="card empty">Aún no has registrado vueltas.<br>Con unas pocas, el plan se adapta solo a donde pierdes golpes.</div>`}
+    : `<div class="card empty">Aún no has registrado vueltas.<br>Con unas pocas, el plan de cada semana se adapta a donde pierdes golpes.</div>`}
   </div>`;
 }
 
@@ -266,7 +313,7 @@ function openRoundSheet(id) {
     <form class="stack" data-form="round" data-id="${r?.id ?? ''}">
       <div class="grid2">
         <label class="field">Fecha<input type="date" name="date" value="${v('date', todayISO())}" max="${todayISO()}" required></label>
-        <label class="field">Hoyos<select name="holes">
+        <label class="field">Hoyos<select name="holes" data-change="holes">
           <option value="18" ${String(r?.holes ?? 18) === '18' ? 'selected' : ''}>18</option>
           <option value="9" ${String(r?.holes) === '9' ? 'selected' : ''}>9</option></select></label>
       </div>
@@ -297,7 +344,7 @@ function renderDistances() {
   const stats = clubs.map((c) => ({ c, s: clubStats(c.id) }));
   const scaleMax = Math.max(50, ...stats.filter((x) => x.s).map((x) => x.s.max)) * 1.05;
   const rows = stats.map(({ c, s }) => `<tr data-action="club-detail" data-club="${c.id}" style="cursor:pointer">
-      <td><strong>${c.id}</strong> <span class="muted small">${c.name}</span></td>
+      <td><button class="cell-btn" data-action="club-detail" data-club="${c.id}" aria-label="Ver golpes de ${c.name}"><strong>${c.id}</strong> <span class="muted small">${c.name}</span></button></td>
       <td class="right">${s ? `<strong>${Math.round(s.avg)}</strong>` : '<span class="muted">–</span>'}</td>
       <td class="right muted">${s?.sd != null ? '±' + Math.round(s.sd) : ''}</td>
       <td style="width:35%">${s ? `<div class="range-track" title="${s.min}–${s.max} m">
@@ -314,6 +361,18 @@ function renderDistances() {
   </div>`;
 }
 
+const MIN_CARRY = 10, MAX_CARRY = 400;
+
+// "142 148,5; 139" → [142, 148.5, 139]. La coma con 1-2 cifras detrás es decimal; si no, separa golpes.
+function parseCarries(text) {
+  const tokens = text.trim().split(/[\s;]+/)
+    .flatMap((t) => (/^\d+,\d{1,2}$/.test(t) ? [t.replace(',', '.')] : t.split(',')))
+    .filter(Boolean);
+  const values = tokens.map(Number);
+  const bad = tokens.filter((_, i) => !(values[i] >= MIN_CARRY && values[i] <= MAX_CARRY));
+  return { values, bad };
+}
+
 function openShotsSheet(club) {
   const clubs = CLUBS.filter((c) => getState().profile.clubs.includes(c.id));
   openSheet(`<h2>Añadir distancias</h2>
@@ -323,7 +382,7 @@ function openShotsSheet(club) {
         <label class="field">Fecha<input type="date" name="date" value="${todayISO()}" max="${todayISO()}" required></label>
       </div>
       <label class="field">Distancias en metros<input name="values" inputmode="decimal" placeholder="Ej.: 142 148 145 139" required autocomplete="off"></label>
-      <p class="small muted">Puedes meter varios golpes a la vez separados por espacios o comas. Usa solo golpes normales, no los fallos claros.</p>
+      <p class="small muted">Puedes meter varios golpes a la vez separados por espacios. Los decimales con coma también valen (142,5). Usa solo golpes normales, no los fallos claros.</p>
       <button class="btn btn-primary btn-block">Guardar</button>
     </form>`);
 }
@@ -401,13 +460,13 @@ function renderProgress() {
       <div class="stat"><div class="v">${balls}</div><div class="l">Bolas / intentos</div></div>
       <div class="stat"><div class="v">${activeDays}</div><div class="l">Días entrenados</div></div>
     </div>
-    <div class="card"><h3>Evolución por ejercicio</h3><div style="margin-top:10px">${drillBlock}</div></div>
+    <div class="card"><h2>Evolución por ejercicio</h2><div style="margin-top:10px">${drillBlock}</div></div>
     <div class="card">
-      <h3>Rendimiento por área</h3>
+      <h2>Rendimiento por área</h2>
       <p class="small muted">% del objetivo alcanzado en los últimos 30 días (100% = justo en el objetivo) y cambio frente a los 30 días anteriores.</p>
       <table class="tbl"><tbody>${catRows}</tbody></table>
     </div>
-    <div class="card"><h3>Vueltas</h3>
+    <div class="card"><h2>Vueltas</h2>
       ${roundCharts || '<p class="small muted">Registra al menos dos vueltas para ver tendencias.</p>'}</div>
   </div>`;
 }
@@ -415,10 +474,10 @@ function renderProgress() {
 // ── Perfil ──
 function renderProfile() {
   const st = getState();
-  const p = st.profile || { name: '', handicap: '', days: [1, 3, 5], minutes: 45, weaknesses: [], clubs: DEFAULT_CLUBS };
+  const p = st.profile || { name: '', handicap: '', days: [0, 2, 4], minutes: 45, weaknesses: [], clubs: DEFAULT_CLUBS };
   const first = !st.profile;
-  const check = (name, value, label, checked) =>
-    `<label class="chip-check"><input type="checkbox" name="${name}" value="${value}" ${checked ? 'checked' : ''}><span>${label}</span></label>`;
+  const check = (name, value, label, checked, aria = '') =>
+    `<label class="chip-check"><input type="checkbox" name="${name}" value="${value}" ${checked ? 'checked' : ''} ${aria ? `aria-label="${aria}"` : ''}><span>${label}</span></label>`;
 
   return `<div class="stack">
     ${first ? `<div class="card highlight"><h2>Bienvenido</h2>
@@ -429,7 +488,7 @@ function renderProfile() {
         <label class="field">Hándicap<input type="number" name="handicap" value="${esc(p.handicap)}" step="0.1" min="-5" max="36" inputmode="decimal" required></label>
       </div>
       <fieldset><legend>Días de entrenamiento</legend>
-        <div class="chips">${DOW_SHORT.map((l, i) => check('days', i, l, p.days.includes(i))).join('')}</div></fieldset>
+        <div class="chips">${DOW_SHORT.map((l, i) => check('days', i, l, p.days.includes(i), DOW[i])).join('')}</div></fieldset>
       <label class="field">Tiempo por sesión<select name="minutes">
         ${[30, 45, 60, 90, 120].map((m) => `<option value="${m}" ${Number(p.minutes) === m ? 'selected' : ''}>${m} minutos</option>`).join('')}</select></label>
       <fieldset><legend>Puntos débiles</legend>
@@ -439,11 +498,12 @@ function renderProfile() {
       <button class="btn btn-primary btn-block">${first ? 'Crear mi plan' : 'Guardar cambios'}</button>
     </form>
     ${first ? '' : `<div class="card stack">
-      <h3>Copia de seguridad</h3>
+      <h2>Copia de seguridad</h2>
       <p class="small muted">Tus datos se guardan solo en este dispositivo. Exporta una copia de vez en cuando o para pasarlos a otro móvil.</p>
       <div class="grid2">
         <button class="btn" data-action="export">Exportar</button>
-        <label class="btn">Importar<input type="file" accept="application/json,.json" data-change="import" hidden></label>
+        <button class="btn" data-action="import-pick">Importar</button>
+        <input type="file" id="import-file" accept="application/json,.json" data-change="import" hidden>
       </div>
       <button class="btn btn-danger btn-block" data-action="reset">Borrar todos los datos</button>
     </div>`}
@@ -466,7 +526,11 @@ function render({ keepScroll = false } = {}) {
   $('#title').textContent = TITLES[r];
   document.body.classList.toggle('onboarding', !getState().profile);
   const tab = r === 'ejercicio' ? 'entrenar' : r;
-  document.querySelectorAll('.tabbar [data-nav]').forEach((b) => b.classList.toggle('active', b.dataset.nav === tab));
+  document.querySelectorAll('.tabbar [data-nav]').forEach((b) => {
+    const on = b.dataset.nav === tab;
+    b.classList.toggle('active', on);
+    if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
   view.innerHTML = routes[r](arg);
   window.scrollTo(0, keepScroll ? y : 0);
 }
@@ -486,8 +550,8 @@ const actions = {
   log(el) { openLogSheet(el.dataset.drill, el.dataset.day, el.dataset.idx); },
   filter(el) { drillFilter = el.dataset.cat; render({ keepScroll: true }); },
   'regen-plan'() {
-    if (!confirm('¿Generar un plan distinto para esta semana? Las marcas de completado se quitan, pero tus registros se conservan.')) return;
-    update((s) => { s.plan = generatePlan(s.profile, s.rounds, s.sessions, (Math.random() * 2 ** 32) >>> 0); });
+    if (!confirm('¿Generar un plan distinto para esta semana? Tus registros se conservan, y también las marcas de los ejercicios que sigan en el plan.')) return;
+    update((s) => { s.plan = carryTicks(s.plan, generatePlan(s.profile, s.rounds, s.sessions, (Math.random() * 2 ** 32) >>> 0)); });
     render();
     toast('Plan nuevo generado');
   },
@@ -507,10 +571,12 @@ const actions = {
   'add-shots'(el) { openShotsSheet(el.dataset.club); },
   'club-detail'(el) { openClubDetail(el.dataset.club); },
   'del-shot'(el) {
+    if (!confirm('¿Borrar este golpe?')) return;
     update((s) => { s.shots = s.shots.filter((x) => x.id !== el.dataset.id); });
     openClubDetail(el.dataset.club);
     render({ keepScroll: true });
   },
+  'import-pick'() { $('#import-file').click(); },
   export() {
     const blob = new Blob([exportState()], { type: 'application/json' });
     const a = document.createElement('a');
@@ -537,7 +603,7 @@ const forms = {
     const session = { id: uid(), date: f.date.value, drillId: drill, attempts, successes, notes: f.notes.value.trim() };
     update((s) => {
       s.sessions.push(session);
-      if (day !== '' && s.plan?.days[day]?.items[idx]?.drillId === drill) s.plan.days[day].items[idx].sessionId = session.id;
+      linkToPlan(s.plan, session, day, idx);
     });
     closeSheet();
     render({ keepScroll: true });
@@ -552,6 +618,9 @@ const forms = {
     if (r.udMade != null && r.udAtt != null && r.udMade > r.udAtt) return toast('Up & down: conseguidos no puede superar intentos');
     if (r.fairways != null && r.fwPossible != null && r.fairways > r.fwPossible) return toast('Calles cogidas no puede superar las posibles');
     if (r.gir != null && r.gir > r.holes) return toast('GIR no puede superar el número de hoyos');
+    if (r.fwPossible != null && r.fwPossible > r.holes) return toast('Calles posibles no puede superar el número de hoyos');
+    if (r.par != null && (r.par < r.holes * 3 || r.par > r.holes * 5)) return toast(`Con ${r.holes} hoyos el par debe estar entre ${r.holes * 3} y ${r.holes * 5}`);
+    if (r.score != null && r.score < r.holes) return toast(`Con ${r.holes} hoyos no puedes hacer menos de ${r.holes} golpes`);
     update((s) => {
       const i = s.rounds.findIndex((x) => x.id === r.id);
       if (i >= 0) s.rounds[i] = r; else s.rounds.push(r);
@@ -561,10 +630,13 @@ const forms = {
     toast('Vuelta guardada');
   },
   shots(f) {
-    const values = f.values.value.split(/[\s,;]+/).map((x) => Number(x.replace(',', '.'))).filter((x) => x > 0 && x < 400);
+    const { values, bad } = parseCarries(f.values.value);
+    if (bad.length) return toast(`No se entiende «${bad.slice(0, 3).join(' ')}». Usa metros entre ${MIN_CARRY} y ${MAX_CARRY}.`);
     if (!values.length) return toast('Introduce al menos una distancia');
+    const base = uid();
     update((s) => {
-      for (const carry of values) s.shots.push({ id: uid(), date: f.date.value, club: f.club.value, carry: Math.round(carry) });
+      // El sufijo mantiene el orden de entrada entre golpes del mismo día.
+      values.forEach((carry, i) => s.shots.push({ id: base + String(i).padStart(2, '0'), date: f.date.value, club: f.club.value, carry: Math.round(carry) }));
     });
     closeSheet();
     render({ keepScroll: true });
@@ -586,7 +658,7 @@ const forms = {
     const planChanged = !old || ['handicap', 'days', 'minutes', 'weaknesses'].some((k) => JSON.stringify(old[k]) !== JSON.stringify(profile[k]));
     update((s) => {
       s.profile = profile;
-      if (planChanged) s.plan = generatePlan(profile, s.rounds, s.sessions, hashStr(weekKey() + Date.now()));
+      if (planChanged) s.plan = carryTicks(s.plan, generatePlan(profile, s.rounds, s.sessions, hashStr(weekKey() + Date.now())));
     });
     toast(old ? (planChanged ? 'Perfil guardado y plan actualizado' : 'Perfil guardado') : 'Tu plan está listo');
     go('plan');
@@ -595,6 +667,14 @@ const forms = {
 
 const changes = {
   'progress-drill'(el) { progressDrill = el.value; render({ keepScroll: true }); },
+  // Ajusta par y calles posibles al cambiar de 18 a 9 hoyos (o al revés), salvo que el usuario los haya cambiado.
+  holes(el) {
+    const f = el.form;
+    const holes = Number(el.value);
+    const other = holes === 9 ? 18 : 9;
+    if (f.par.value === '' || Number(f.par.value) === other * 4) f.par.value = holes * 4;
+    if (f.fwPossible.value === '' || Number(f.fwPossible.value) === (other === 18 ? 14 : 7)) f.fwPossible.value = holes === 18 ? 14 : 7;
+  },
   async import(el) {
     const file = el.files[0];
     if (!file) return;
@@ -629,7 +709,7 @@ document.addEventListener('change', (e) => {
   if (el && changes[el.dataset.change]) changes[el.dataset.change](el);
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
-window.addEventListener('hashchange', () => render());
+window.addEventListener('hashchange', () => { if (!sheet.hidden) closeSheet(); render(); });
 
 // Si la app se queda abierta y cambia la semana, se regenera el plan al volver.
 document.addEventListener('visibilitychange', () => {
