@@ -5,6 +5,7 @@ import {
   mean, stdev, roundStats, computeFocus, generatePlan,
 } from './plan.js';
 import { lineChart } from './charts.js';
+import { isBackup } from './validate.js';
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const view = $('#view');
@@ -941,12 +942,12 @@ const changes = {
     const file = el.files[0];
     if (!file) return;
     try {
+      if (file.size > 5_000_000) throw new Error('tamaño');
       const data = JSON.parse(await file.text());
-      if (data.app !== 'golfplan' || !Array.isArray(data.sessions)) throw new Error('formato');
+      if (!isBackup(data)) throw new Error('formato');
       if (!(await ask('¿Reemplazar tus datos por los de la copia?', { ok: 'Importar', danger: true, detail: 'Se perderá lo que tengas ahora en este dispositivo.' }))) return;
-      const { app, version, exportedAt, ...rest } = data;
-      replaceState(rest);
-      toast('Datos importados');
+      const dropped = replaceState(data);
+      toast(dropped ? `Datos importados. Se descartaron ${plural(dropped, 'registro no válido', 'registros no válidos')}.` : 'Datos importados');
       go('plan');
     } catch {
       toast('El archivo no es una copia válida de Golf Plan');

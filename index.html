@@ -2,6 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
+  <!-- Todo se sirve desde el propio origen. style-src admite 'unsafe-inline' solo por los atributos
+       style="" que pinta la app (anchos de barras, anillos); scripts en línea siguen prohibidos. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0d1f16" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#050906" media="(prefers-color-scheme: dark)">

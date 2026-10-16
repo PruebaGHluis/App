@@ -1,4 +1,7 @@
 // Persistencia local: todo el estado vive en localStorage bajo una sola clave.
+// Lo que se lee o se importa pasa siempre por sanitizeState: localStorage es una entrada no fiable.
+import { sanitizeState } from './validate.js';
+
 const KEY = 'golfplan:v1';
 
 const defaults = () => ({
@@ -6,7 +9,7 @@ const defaults = () => ({
   sessions: [],    // { id, date, drillId, attempts, successes, notes }
   rounds: [],      // { id, date, course, holes, par, score, fairways, fwPossible, gir, putts, udAtt, udMade, penalties, notes }
   shots: [],       // { id, date, club, carry }
-  plan: null,      // { week, seed, days: [{ dow, items: [{ drillId, sessionId }] }] }
+  plan: null,      // { week, seed, start?, days: [{ dow, items: [{ drillId, sessionId }] }] }
 });
 
 let state = load();
@@ -14,7 +17,7 @@ let state = load();
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? { ...defaults(), ...JSON.parse(raw) } : defaults();
+    return raw ? { ...defaults(), ...sanitizeState(JSON.parse(raw)).state } : defaults();
   } catch {
     return defaults();
   }
@@ -35,9 +38,12 @@ export function update(fn) {
   save();
 }
 
+// Sustituye todo el estado; devuelve cuántos registros se descartaron por no ser válidos.
 export function replaceState(data) {
-  state = { ...defaults(), ...data };
+  const { state: clean, dropped } = sanitizeState(data);
+  state = { ...defaults(), ...clean };
   save();
+  return dropped;
 }
 
 export function exportState() {
