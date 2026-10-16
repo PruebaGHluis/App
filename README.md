@@ -85,6 +85,15 @@ Si cambias archivos de la app, sube la versión de `CACHE` en `sw.js` para que l
 
 Cada cambio en `main` pasa por los tests, el análisis de CodeQL y OpenSSF Scorecard. Dependabot mantiene al día las acciones de GitHub, que van fijadas por hash.
 
+Los ajustes de seguridad del repositorio (protección de `main`, Dependabot, secret scanning, avisos privados, permisos de Actions y Pages) se aplican con [scripts/configurar-github.ps1](scripts/configurar-github.ps1). Lo ejecuta la cuenta propietaria, después de iniciar sesión en GitHub CLI:
+
+```
+gh auth login
+powershell -ExecutionPolicy Bypass -File scripts\configurar-github.ps1
+```
+
+Con `-SoloComprobar` revisa el estado sin cambiar nada.
+
 ## Licencia
 
 El código de la app se publica con licencia [MIT](LICENSE).
