@@ -1,4 +1,5 @@
 // Gráfica de línea en SVG sin dependencias. Los colores vienen del CSS (.chart …).
+// Si todos los puntos traen fecha (t, YYYY-MM-DD), el eje X respeta el tiempo transcurrido entre ellos.
 export function lineChart(points, { target = null, min = null, max = null, suffix = '', label = 'Gráfica' } = {}) {
   const W = 320, H = 150, P = { l: 32, r: 12, t: 12, b: 22 };
   const ys = points.map((p) => p.y);
@@ -13,7 +14,13 @@ export function lineChart(points, { target = null, min = null, max = null, suffi
   if (hi === lo) hi = lo + 1;
 
   const iw = W - P.l - P.r, ih = H - P.t - P.b;
-  const x = (i) => P.l + (points.length === 1 ? iw / 2 : (i * iw) / (points.length - 1));
+  const times = points.every((p) => p.t) ? points.map((p) => new Date(p.t + 'T00:00:00').getTime()) : null;
+  const t0 = times ? Math.min(...times) : 0, t1 = times ? Math.max(...times) : 0;
+  const x = (i) => {
+    if (points.length === 1) return P.l + iw / 2;
+    if (times && t1 > t0) return P.l + ((times[i] - t0) / (t1 - t0)) * iw;
+    return P.l + (i * iw) / (points.length - 1);
+  };
   const y = (v) => P.t + (1 - (v - lo) / (hi - lo)) * ih;
   const fmt = (v) => (Math.abs(v) >= 10 || Number.isInteger(v) ? Math.round(v) : v.toFixed(1));
 
@@ -36,7 +43,14 @@ export function lineChart(points, { target = null, min = null, max = null, suffi
       (points.length > 1 ? `<text class="axis" x="${x(points.length - 1)}" y="${H - 6}" text-anchor="end">${points[points.length - 1].label}</text>` : '')
     : '';
 
+  // Los mismos datos en tabla, para lectores de pantalla y para consultar valores exactos en el móvil.
+  const rows = [...points].reverse()
+    .map((p) => `<tr><td>${p.label}</td><td class="right">${fmt(p.y)}${suffix}</td></tr>`).join('');
+
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${label}">
     ${grid}${tgt}<path class="line" d="${path}"/>${dots}${xLabels}
-  </svg>`;
+  </svg>
+  <details class="chart-data"><summary>Ver datos</summary>
+    <table class="tbl"><thead><tr><th>Fecha</th><th class="right">Valor</th></tr></thead><tbody>${rows}</tbody></table>
+  </details>`;
 }

@@ -1,0 +1,1051 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-16T08:08:57.616Z",
+  "title": "Design System: Golf Plan",
+  "extensions": {
+    "colorMeta": {
+      "bg": {
+        "role": "neutral",
+        "displayName": "Papel frío",
+        "canonical": "#f2f4f0",
+        "oklch": "oklch(96.5% 0.006 128.5)",
+        "tonalRamp": [
+          "oklch(15% 0.006 128.5)",
+          "oklch(26.4% 0.006 128.5)",
+          "oklch(37.9% 0.006 128.5)",
+          "oklch(49.3% 0.006 128.5)",
+          "oklch(60.7% 0.006 128.5)",
+          "oklch(72.1% 0.006 128.5)",
+          "oklch(83.6% 0.006 128.5)",
+          "oklch(95% 0.006 128.5)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Blanco tarjeta",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100% 0 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0 89.9)",
+          "oklch(26.4% 0 89.9)",
+          "oklch(37.9% 0 89.9)",
+          "oklch(49.3% 0 89.9)",
+          "oklch(60.7% 0 89.9)",
+          "oklch(72.1% 0 89.9)",
+          "oklch(83.6% 0 89.9)",
+          "oklch(95% 0 89.9)"
+        ]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Gris salvia",
+        "canonical": "#e8ede6",
+        "oklch": "oklch(94% 0.011 136.6)",
+        "tonalRamp": [
+          "oklch(15% 0.011 136.6)",
+          "oklch(26.4% 0.011 136.6)",
+          "oklch(37.9% 0.011 136.6)",
+          "oklch(49.3% 0.011 136.6)",
+          "oklch(60.7% 0.011 136.6)",
+          "oklch(72.1% 0.011 136.6)",
+          "oklch(83.6% 0.011 136.6)",
+          "oklch(95% 0.011 136.6)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "#0c1611",
+        "oklch": "oklch(18.8% 0.018 162.3)",
+        "tonalRamp": [
+          "oklch(15% 0.018 162.3)",
+          "oklch(26.4% 0.018 162.3)",
+          "oklch(37.9% 0.018 162.3)",
+          "oklch(49.3% 0.018 162.3)",
+          "oklch(60.7% 0.018 162.3)",
+          "oklch(72.1% 0.018 162.3)",
+          "oklch(83.6% 0.018 162.3)",
+          "oklch(95% 0.018 162.3)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Gris musgo",
+        "canonical": "#4f5c55",
+        "oklch": "oklch(46.1% 0.02 162.1)",
+        "tonalRamp": [
+          "oklch(15% 0.02 162.1)",
+          "oklch(26.4% 0.02 162.1)",
+          "oklch(37.9% 0.02 162.1)",
+          "oklch(49.3% 0.02 162.1)",
+          "oklch(60.7% 0.02 162.1)",
+          "oklch(72.1% 0.02 162.1)",
+          "oklch(83.6% 0.02 162.1)",
+          "oklch(95% 0.02 162.1)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Línea",
+        "canonical": "#d5ddd5",
+        "oklch": "oklch(88.9% 0.014 145.5)",
+        "tonalRamp": [
+          "oklch(15% 0.014 145.5)",
+          "oklch(26.4% 0.014 145.5)",
+          "oklch(37.9% 0.014 145.5)",
+          "oklch(49.3% 0.014 145.5)",
+          "oklch(60.7% 0.014 145.5)",
+          "oklch(72.1% 0.014 145.5)",
+          "oklch(83.6% 0.014 145.5)",
+          "oklch(95% 0.014 145.5)"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Línea fuerte",
+        "canonical": "#7f8c84",
+        "oklch": "oklch(62.7% 0.019 158.8)",
+        "tonalRamp": [
+          "oklch(15% 0.019 158.8)",
+          "oklch(26.4% 0.019 158.8)",
+          "oklch(37.9% 0.019 158.8)",
+          "oklch(49.3% 0.019 158.8)",
+          "oklch(60.7% 0.019 158.8)",
+          "oklch(72.1% 0.019 158.8)",
+          "oklch(83.6% 0.019 158.8)",
+          "oklch(95% 0.019 158.8)"
+        ]
+      },
+      "primary": {
+        "role": "primary",
+        "displayName": "Verde de calle",
+        "canonical": "#0b6a3c",
+        "oklch": "oklch(46.2% 0.11 155)",
+        "tonalRamp": [
+          "oklch(15% 0.067 155)",
+          "oklch(26.4% 0.11 155)",
+          "oklch(37.9% 0.11 155)",
+          "oklch(49.3% 0.11 155)",
+          "oklch(60.7% 0.11 155)",
+          "oklch(72.1% 0.11 155)",
+          "oklch(83.6% 0.073 155)",
+          "oklch(95% 0.022 155)"
+        ]
+      },
+      "primary-soft": {
+        "role": "primary",
+        "displayName": "Verde de calle suave",
+        "canonical": "#d9efe1",
+        "oklch": "oklch(93.2% 0.03 157.9)",
+        "tonalRamp": [
+          "oklch(15% 0.03 157.9)",
+          "oklch(26.4% 0.03 157.9)",
+          "oklch(37.9% 0.03 157.9)",
+          "oklch(49.3% 0.03 157.9)",
+          "oklch(60.7% 0.03 157.9)",
+          "oklch(72.1% 0.03 157.9)",
+          "oklch(83.6% 0.03 157.9)",
+          "oklch(95% 0.022 157.9)"
+        ]
+      },
+      "on-primary": {
+        "role": "primary",
+        "displayName": "Sobre primario",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100% 0 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0 89.9)",
+          "oklch(26.4% 0 89.9)",
+          "oklch(37.9% 0 89.9)",
+          "oklch(49.3% 0 89.9)",
+          "oklch(60.7% 0 89.9)",
+          "oklch(72.1% 0 89.9)",
+          "oklch(83.6% 0 89.9)",
+          "oklch(95% 0 89.9)"
+        ]
+      },
+      "danger": {
+        "role": "status",
+        "displayName": "Rojo de borrar",
+        "canonical": "#b4372f",
+        "oklch": "oklch(52.1% 0.163 27.8)",
+        "tonalRamp": [
+          "oklch(15% 0.067 27.8)",
+          "oklch(26.4% 0.117 27.8)",
+          "oklch(37.9% 0.163 27.8)",
+          "oklch(49.3% 0.163 27.8)",
+          "oklch(60.7% 0.163 27.8)",
+          "oklch(72.1% 0.124 27.8)",
+          "oklch(83.6% 0.073 27.8)",
+          "oklch(95% 0.022 27.8)"
+        ]
+      },
+      "warn": {
+        "role": "status",
+        "displayName": "Ámbar de aviso",
+        "canonical": "#b7791f",
+        "oklch": "oklch(62.6% 0.125 70.4)",
+        "tonalRamp": [
+          "oklch(15% 0.067 70.4)",
+          "oklch(26.4% 0.117 70.4)",
+          "oklch(37.9% 0.125 70.4)",
+          "oklch(49.3% 0.125 70.4)",
+          "oklch(60.7% 0.125 70.4)",
+          "oklch(72.1% 0.124 70.4)",
+          "oklch(83.6% 0.073 70.4)",
+          "oklch(95% 0.022 70.4)"
+        ]
+      },
+      "warn-text": {
+        "role": "status",
+        "displayName": "Texto ámbar",
+        "canonical": "#8a5a12",
+        "oklch": "oklch(50.9% 0.103 70.8)",
+        "tonalRamp": [
+          "oklch(15% 0.067 70.8)",
+          "oklch(26.4% 0.103 70.8)",
+          "oklch(37.9% 0.103 70.8)",
+          "oklch(49.3% 0.103 70.8)",
+          "oklch(60.7% 0.103 70.8)",
+          "oklch(72.1% 0.103 70.8)",
+          "oklch(83.6% 0.073 70.8)",
+          "oklch(95% 0.022 70.8)"
+        ]
+      },
+      "ok": {
+        "role": "status",
+        "displayName": "Verde cumplido",
+        "canonical": "#138a4a",
+        "oklch": "oklch(55.7% 0.138 152.8)",
+        "tonalRamp": [
+          "oklch(15% 0.067 152.8)",
+          "oklch(26.4% 0.117 152.8)",
+          "oklch(37.9% 0.138 152.8)",
+          "oklch(49.3% 0.138 152.8)",
+          "oklch(60.7% 0.138 152.8)",
+          "oklch(72.1% 0.124 152.8)",
+          "oklch(83.6% 0.073 152.8)",
+          "oklch(95% 0.022 152.8)"
+        ]
+      },
+      "ok-text": {
+        "role": "status",
+        "displayName": "Texto cumplido",
+        "canonical": "#0f5f34",
+        "oklch": "oklch(42.9% 0.102 153.7)",
+        "tonalRamp": [
+          "oklch(15% 0.067 153.7)",
+          "oklch(26.4% 0.102 153.7)",
+          "oklch(37.9% 0.102 153.7)",
+          "oklch(49.3% 0.102 153.7)",
+          "oklch(60.7% 0.102 153.7)",
+          "oklch(72.1% 0.102 153.7)",
+          "oklch(83.6% 0.073 153.7)",
+          "oklch(95% 0.022 153.7)"
+        ]
+      },
+      "shell": {
+        "role": "secondary",
+        "displayName": "Tinta de marco",
+        "canonical": "#0d1f16",
+        "oklch": "oklch(22% 0.03 160.8)",
+        "tonalRamp": [
+          "oklch(15% 0.03 160.8)",
+          "oklch(26.4% 0.03 160.8)",
+          "oklch(37.9% 0.03 160.8)",
+          "oklch(49.3% 0.03 160.8)",
+          "oklch(60.7% 0.03 160.8)",
+          "oklch(72.1% 0.03 160.8)",
+          "oklch(83.6% 0.03 160.8)",
+          "oklch(95% 0.022 160.8)"
+        ]
+      },
+      "shell-2": {
+        "role": "secondary",
+        "displayName": "Marco elevado",
+        "canonical": "#163024",
+        "oklch": "oklch(28.4% 0.039 162.5)",
+        "tonalRamp": [
+          "oklch(15% 0.039 162.5)",
+          "oklch(26.4% 0.039 162.5)",
+          "oklch(37.9% 0.039 162.5)",
+          "oklch(49.3% 0.039 162.5)",
+          "oklch(60.7% 0.039 162.5)",
+          "oklch(72.1% 0.039 162.5)",
+          "oklch(83.6% 0.039 162.5)",
+          "oklch(95% 0.022 162.5)"
+        ]
+      },
+      "on-shell": {
+        "role": "secondary",
+        "displayName": "Texto sobre marco",
+        "canonical": "#f2f7f3",
+        "oklch": "oklch(97.1% 0.007 151.9)",
+        "tonalRamp": [
+          "oklch(15% 0.007 151.9)",
+          "oklch(26.4% 0.007 151.9)",
+          "oklch(37.9% 0.007 151.9)",
+          "oklch(49.3% 0.007 151.9)",
+          "oklch(60.7% 0.007 151.9)",
+          "oklch(72.1% 0.007 151.9)",
+          "oklch(83.6% 0.007 151.9)",
+          "oklch(95% 0.007 151.9)"
+        ]
+      },
+      "shell-muted": {
+        "role": "secondary",
+        "displayName": "Texto apagado sobre marco",
+        "canonical": "#a3b6aa",
+        "oklch": "oklch(75.8% 0.027 158)",
+        "tonalRamp": [
+          "oklch(15% 0.027 158)",
+          "oklch(26.4% 0.027 158)",
+          "oklch(37.9% 0.027 158)",
+          "oklch(49.3% 0.027 158)",
+          "oklch(60.7% 0.027 158)",
+          "oklch(72.1% 0.027 158)",
+          "oklch(83.6% 0.027 158)",
+          "oklch(95% 0.022 158)"
+        ]
+      },
+      "shell-line": {
+        "role": "secondary",
+        "displayName": "Línea de marco",
+        "canonical": "#2a4335",
+        "oklch": "oklch(35.8% 0.039 159.1)",
+        "tonalRamp": [
+          "oklch(15% 0.039 159.1)",
+          "oklch(26.4% 0.039 159.1)",
+          "oklch(37.9% 0.039 159.1)",
+          "oklch(49.3% 0.039 159.1)",
+          "oklch(60.7% 0.039 159.1)",
+          "oklch(72.1% 0.039 159.1)",
+          "oklch(83.6% 0.039 159.1)",
+          "oklch(95% 0.022 159.1)"
+        ]
+      },
+      "volt": {
+        "role": "tertiary",
+        "displayName": "Volt",
+        "canonical": "#c6f432",
+        "oklch": "oklch(90.3% 0.208 122.9)",
+        "tonalRamp": [
+          "oklch(15% 0.067 122.9)",
+          "oklch(26.4% 0.117 122.9)",
+          "oklch(37.9% 0.168 122.9)",
+          "oklch(49.3% 0.208 122.9)",
+          "oklch(60.7% 0.174 122.9)",
+          "oklch(72.1% 0.124 122.9)",
+          "oklch(83.6% 0.073 122.9)",
+          "oklch(95% 0.022 122.9)"
+        ]
+      },
+      "on-volt": {
+        "role": "tertiary",
+        "displayName": "Tinta sobre volt",
+        "canonical": "#0c1611",
+        "oklch": "oklch(18.8% 0.018 162.3)",
+        "tonalRamp": [
+          "oklch(15% 0.018 162.3)",
+          "oklch(26.4% 0.018 162.3)",
+          "oklch(37.9% 0.018 162.3)",
+          "oklch(49.3% 0.018 162.3)",
+          "oklch(60.7% 0.018 162.3)",
+          "oklch(72.1% 0.018 162.3)",
+          "oklch(83.6% 0.018 162.3)",
+          "oklch(95% 0.018 162.3)"
+        ]
+      },
+      "c-largo": {
+        "role": "category",
+        "displayName": "Juego largo",
+        "canonical": "#2563c4",
+        "oklch": "oklch(51.6% 0.165 259.4)",
+        "tonalRamp": [
+          "oklch(15% 0.067 259.4)",
+          "oklch(26.4% 0.117 259.4)",
+          "oklch(37.9% 0.165 259.4)",
+          "oklch(49.3% 0.165 259.4)",
+          "oklch(60.7% 0.165 259.4)",
+          "oklch(72.1% 0.124 259.4)",
+          "oklch(83.6% 0.073 259.4)",
+          "oklch(95% 0.022 259.4)"
+        ]
+      },
+      "c-approach": {
+        "role": "category",
+        "displayName": "Approach",
+        "canonical": "#0f8a55",
+        "oklch": "oklch(55.9% 0.129 157.3)",
+        "tonalRamp": [
+          "oklch(15% 0.067 157.3)",
+          "oklch(26.4% 0.117 157.3)",
+          "oklch(37.9% 0.129 157.3)",
+          "oklch(49.3% 0.129 157.3)",
+          "oklch(60.7% 0.129 157.3)",
+          "oklch(72.1% 0.124 157.3)",
+          "oklch(83.6% 0.073 157.3)",
+          "oklch(95% 0.022 157.3)"
+        ]
+      },
+      "c-juegocorto": {
+        "role": "category",
+        "displayName": "Juego corto",
+        "canonical": "#c8620f",
+        "oklch": "oklch(60.8% 0.153 51.2)",
+        "tonalRamp": [
+          "oklch(15% 0.067 51.2)",
+          "oklch(26.4% 0.117 51.2)",
+          "oklch(37.9% 0.153 51.2)",
+          "oklch(49.3% 0.153 51.2)",
+          "oklch(60.7% 0.153 51.2)",
+          "oklch(72.1% 0.124 51.2)",
+          "oklch(83.6% 0.073 51.2)",
+          "oklch(95% 0.022 51.2)"
+        ]
+      },
+      "c-bunker": {
+        "role": "category",
+        "displayName": "Bunker",
+        "canonical": "#a07a1e",
+        "oklch": "oklch(60.1% 0.113 84.4)",
+        "tonalRamp": [
+          "oklch(15% 0.067 84.4)",
+          "oklch(26.4% 0.113 84.4)",
+          "oklch(37.9% 0.113 84.4)",
+          "oklch(49.3% 0.113 84.4)",
+          "oklch(60.7% 0.113 84.4)",
+          "oklch(72.1% 0.113 84.4)",
+          "oklch(83.6% 0.073 84.4)",
+          "oklch(95% 0.022 84.4)"
+        ]
+      },
+      "c-putt": {
+        "role": "category",
+        "displayName": "Putt",
+        "canonical": "#7442c2",
+        "oklch": "oklch(50.8% 0.19 297)",
+        "tonalRamp": [
+          "oklch(15% 0.067 297)",
+          "oklch(26.4% 0.117 297)",
+          "oklch(37.9% 0.168 297)",
+          "oklch(49.3% 0.19 297)",
+          "oklch(60.7% 0.174 297)",
+          "oklch(72.1% 0.124 297)",
+          "oklch(83.6% 0.073 297)",
+          "oklch(95% 0.022 297)"
+        ]
+      },
+      "bg-dark": {
+        "role": "neutral",
+        "displayName": "Papel frío (oscuro)",
+        "canonical": "#0a100c",
+        "oklch": "oklch(16.5% 0.013 155.6)",
+        "tonalRamp": [
+          "oklch(15% 0.013 155.6)",
+          "oklch(26.4% 0.013 155.6)",
+          "oklch(37.9% 0.013 155.6)",
+          "oklch(49.3% 0.013 155.6)",
+          "oklch(60.7% 0.013 155.6)",
+          "oklch(72.1% 0.013 155.6)",
+          "oklch(83.6% 0.013 155.6)",
+          "oklch(95% 0.013 155.6)"
+        ],
+        "mode": "dark"
+      },
+      "surface-dark": {
+        "role": "neutral",
+        "displayName": "Blanco tarjeta (oscuro)",
+        "canonical": "#131b16",
+        "oklch": "oklch(21.2% 0.015 157.4)",
+        "tonalRamp": [
+          "oklch(15% 0.015 157.4)",
+          "oklch(26.4% 0.015 157.4)",
+          "oklch(37.9% 0.015 157.4)",
+          "oklch(49.3% 0.015 157.4)",
+          "oklch(60.7% 0.015 157.4)",
+          "oklch(72.1% 0.015 157.4)",
+          "oklch(83.6% 0.015 157.4)",
+          "oklch(95% 0.015 157.4)"
+        ],
+        "mode": "dark"
+      },
+      "surface-2-dark": {
+        "role": "neutral",
+        "displayName": "Gris salvia (oscuro)",
+        "canonical": "#1c2620",
+        "oklch": "oklch(25.7% 0.018 158.5)",
+        "tonalRamp": [
+          "oklch(15% 0.018 158.5)",
+          "oklch(26.4% 0.018 158.5)",
+          "oklch(37.9% 0.018 158.5)",
+          "oklch(49.3% 0.018 158.5)",
+          "oklch(60.7% 0.018 158.5)",
+          "oklch(72.1% 0.018 158.5)",
+          "oklch(83.6% 0.018 158.5)",
+          "oklch(95% 0.018 158.5)"
+        ],
+        "mode": "dark"
+      },
+      "text-dark": {
+        "role": "neutral",
+        "displayName": "Tinta (oscuro)",
+        "canonical": "#ecf2ee",
+        "oklch": "oklch(95.5% 0.008 157.1)",
+        "tonalRamp": [
+          "oklch(15% 0.008 157.1)",
+          "oklch(26.4% 0.008 157.1)",
+          "oklch(37.9% 0.008 157.1)",
+          "oklch(49.3% 0.008 157.1)",
+          "oklch(60.7% 0.008 157.1)",
+          "oklch(72.1% 0.008 157.1)",
+          "oklch(83.6% 0.008 157.1)",
+          "oklch(95% 0.008 157.1)"
+        ],
+        "mode": "dark"
+      },
+      "muted-dark": {
+        "role": "neutral",
+        "displayName": "Gris musgo (oscuro)",
+        "canonical": "#a0b1a7",
+        "oklch": "oklch(74.4% 0.024 160)",
+        "tonalRamp": [
+          "oklch(15% 0.024 160)",
+          "oklch(26.4% 0.024 160)",
+          "oklch(37.9% 0.024 160)",
+          "oklch(49.3% 0.024 160)",
+          "oklch(60.7% 0.024 160)",
+          "oklch(72.1% 0.024 160)",
+          "oklch(83.6% 0.024 160)",
+          "oklch(95% 0.022 160)"
+        ],
+        "mode": "dark"
+      },
+      "line-dark": {
+        "role": "neutral",
+        "displayName": "Línea (oscuro)",
+        "canonical": "#26332b",
+        "oklch": "oklch(30.6% 0.023 157.8)",
+        "tonalRamp": [
+          "oklch(15% 0.023 157.8)",
+          "oklch(26.4% 0.023 157.8)",
+          "oklch(37.9% 0.023 157.8)",
+          "oklch(49.3% 0.023 157.8)",
+          "oklch(60.7% 0.023 157.8)",
+          "oklch(72.1% 0.023 157.8)",
+          "oklch(83.6% 0.023 157.8)",
+          "oklch(95% 0.022 157.8)"
+        ],
+        "mode": "dark"
+      },
+      "line-strong-dark": {
+        "role": "neutral",
+        "displayName": "Línea fuerte (oscuro)",
+        "canonical": "#5c6e63",
+        "oklch": "oklch(52% 0.028 158.5)",
+        "tonalRamp": [
+          "oklch(15% 0.028 158.5)",
+          "oklch(26.4% 0.028 158.5)",
+          "oklch(37.9% 0.028 158.5)",
+          "oklch(49.3% 0.028 158.5)",
+          "oklch(60.7% 0.028 158.5)",
+          "oklch(72.1% 0.028 158.5)",
+          "oklch(83.6% 0.028 158.5)",
+          "oklch(95% 0.022 158.5)"
+        ],
+        "mode": "dark"
+      },
+      "primary-dark": {
+        "role": "primary",
+        "displayName": "Verde de calle (oscuro)",
+        "canonical": "#3fcf7f",
+        "oklch": "oklch(76% 0.167 154.4)",
+        "tonalRamp": [
+          "oklch(15% 0.067 154.4)",
+          "oklch(26.4% 0.117 154.4)",
+          "oklch(37.9% 0.167 154.4)",
+          "oklch(49.3% 0.167 154.4)",
+          "oklch(60.7% 0.167 154.4)",
+          "oklch(72.1% 0.124 154.4)",
+          "oklch(83.6% 0.073 154.4)",
+          "oklch(95% 0.022 154.4)"
+        ],
+        "mode": "dark"
+      },
+      "primary-soft-dark": {
+        "role": "primary",
+        "displayName": "Verde de calle suave (oscuro)",
+        "canonical": "#16301f",
+        "oklch": "oklch(28.3% 0.045 153.8)",
+        "tonalRamp": [
+          "oklch(15% 0.045 153.8)",
+          "oklch(26.4% 0.045 153.8)",
+          "oklch(37.9% 0.045 153.8)",
+          "oklch(49.3% 0.045 153.8)",
+          "oklch(60.7% 0.045 153.8)",
+          "oklch(72.1% 0.045 153.8)",
+          "oklch(83.6% 0.045 153.8)",
+          "oklch(95% 0.022 153.8)"
+        ],
+        "mode": "dark"
+      },
+      "on-primary-dark": {
+        "role": "primary",
+        "displayName": "Sobre primario (oscuro)",
+        "canonical": "#06110a",
+        "oklch": "oklch(16.4% 0.023 156.4)",
+        "tonalRamp": [
+          "oklch(15% 0.023 156.4)",
+          "oklch(26.4% 0.023 156.4)",
+          "oklch(37.9% 0.023 156.4)",
+          "oklch(49.3% 0.023 156.4)",
+          "oklch(60.7% 0.023 156.4)",
+          "oklch(72.1% 0.023 156.4)",
+          "oklch(83.6% 0.023 156.4)",
+          "oklch(95% 0.022 156.4)"
+        ],
+        "mode": "dark"
+      },
+      "danger-dark": {
+        "role": "status",
+        "displayName": "Rojo de borrar (oscuro)",
+        "canonical": "#ef6b62",
+        "oklch": "oklch(68.7% 0.165 26.2)",
+        "tonalRamp": [
+          "oklch(15% 0.067 26.2)",
+          "oklch(26.4% 0.117 26.2)",
+          "oklch(37.9% 0.165 26.2)",
+          "oklch(49.3% 0.165 26.2)",
+          "oklch(60.7% 0.165 26.2)",
+          "oklch(72.1% 0.124 26.2)",
+          "oklch(83.6% 0.073 26.2)",
+          "oklch(95% 0.022 26.2)"
+        ],
+        "mode": "dark"
+      },
+      "warn-dark": {
+        "role": "status",
+        "displayName": "Ámbar de aviso (oscuro)",
+        "canonical": "#e0a54a",
+        "oklch": "oklch(76.1% 0.127 75.4)",
+        "tonalRamp": [
+          "oklch(15% 0.067 75.4)",
+          "oklch(26.4% 0.117 75.4)",
+          "oklch(37.9% 0.127 75.4)",
+          "oklch(49.3% 0.127 75.4)",
+          "oklch(60.7% 0.127 75.4)",
+          "oklch(72.1% 0.124 75.4)",
+          "oklch(83.6% 0.073 75.4)",
+          "oklch(95% 0.022 75.4)"
+        ],
+        "mode": "dark"
+      },
+      "ok-dark": {
+        "role": "status",
+        "displayName": "Verde cumplido (oscuro)",
+        "canonical": "#4fd38a",
+        "oklch": "oklch(77.6% 0.157 155.5)",
+        "tonalRamp": [
+          "oklch(15% 0.067 155.5)",
+          "oklch(26.4% 0.117 155.5)",
+          "oklch(37.9% 0.157 155.5)",
+          "oklch(49.3% 0.157 155.5)",
+          "oklch(60.7% 0.157 155.5)",
+          "oklch(72.1% 0.124 155.5)",
+          "oklch(83.6% 0.073 155.5)",
+          "oklch(95% 0.022 155.5)"
+        ],
+        "mode": "dark"
+      },
+      "shell-dark": {
+        "role": "secondary",
+        "displayName": "Tinta de marco (oscuro)",
+        "canonical": "#050906",
+        "oklch": "oklch(13.3% 0.011 153.5)",
+        "tonalRamp": [
+          "oklch(15% 0.011 153.5)",
+          "oklch(26.4% 0.011 153.5)",
+          "oklch(37.9% 0.011 153.5)",
+          "oklch(49.3% 0.011 153.5)",
+          "oklch(60.7% 0.011 153.5)",
+          "oklch(72.1% 0.011 153.5)",
+          "oklch(83.6% 0.011 153.5)",
+          "oklch(95% 0.011 153.5)"
+        ],
+        "mode": "dark"
+      },
+      "shell-2-dark": {
+        "role": "secondary",
+        "displayName": "Marco elevado (oscuro)",
+        "canonical": "#102018",
+        "oklch": "oklch(22.6% 0.027 161.5)",
+        "tonalRamp": [
+          "oklch(15% 0.027 161.5)",
+          "oklch(26.4% 0.027 161.5)",
+          "oklch(37.9% 0.027 161.5)",
+          "oklch(49.3% 0.027 161.5)",
+          "oklch(60.7% 0.027 161.5)",
+          "oklch(72.1% 0.027 161.5)",
+          "oklch(83.6% 0.027 161.5)",
+          "oklch(95% 0.022 161.5)"
+        ],
+        "mode": "dark"
+      },
+      "shell-line-dark": {
+        "role": "secondary",
+        "displayName": "Línea de marco (oscuro)",
+        "canonical": "#1f3127",
+        "oklch": "oklch(29.4% 0.03 159.5)",
+        "tonalRamp": [
+          "oklch(15% 0.03 159.5)",
+          "oklch(26.4% 0.03 159.5)",
+          "oklch(37.9% 0.03 159.5)",
+          "oklch(49.3% 0.03 159.5)",
+          "oklch(60.7% 0.03 159.5)",
+          "oklch(72.1% 0.03 159.5)",
+          "oklch(83.6% 0.03 159.5)",
+          "oklch(95% 0.022 159.5)"
+        ],
+        "mode": "dark"
+      },
+      "c-largo-dark": {
+        "role": "category",
+        "displayName": "Juego largo (oscuro)",
+        "canonical": "#6aa3f0",
+        "oklch": "oklch(70.9% 0.128 256.3)",
+        "tonalRamp": [
+          "oklch(15% 0.067 256.3)",
+          "oklch(26.4% 0.117 256.3)",
+          "oklch(37.9% 0.128 256.3)",
+          "oklch(49.3% 0.128 256.3)",
+          "oklch(60.7% 0.128 256.3)",
+          "oklch(72.1% 0.124 256.3)",
+          "oklch(83.6% 0.073 256.3)",
+          "oklch(95% 0.022 256.3)"
+        ],
+        "mode": "dark"
+      },
+      "c-approach-dark": {
+        "role": "category",
+        "displayName": "Approach (oscuro)",
+        "canonical": "#45c98c",
+        "oklch": "oklch(74.9% 0.146 159.4)",
+        "tonalRamp": [
+          "oklch(15% 0.067 159.4)",
+          "oklch(26.4% 0.117 159.4)",
+          "oklch(37.9% 0.146 159.4)",
+          "oklch(49.3% 0.146 159.4)",
+          "oklch(60.7% 0.146 159.4)",
+          "oklch(72.1% 0.124 159.4)",
+          "oklch(83.6% 0.073 159.4)",
+          "oklch(95% 0.022 159.4)"
+        ],
+        "mode": "dark"
+      },
+      "c-juegocorto-dark": {
+        "role": "category",
+        "displayName": "Juego corto (oscuro)",
+        "canonical": "#f0954a",
+        "oklch": "oklch(75% 0.141 57.6)",
+        "tonalRamp": [
+          "oklch(15% 0.067 57.6)",
+          "oklch(26.4% 0.117 57.6)",
+          "oklch(37.9% 0.141 57.6)",
+          "oklch(49.3% 0.141 57.6)",
+          "oklch(60.7% 0.141 57.6)",
+          "oklch(72.1% 0.124 57.6)",
+          "oklch(83.6% 0.073 57.6)",
+          "oklch(95% 0.022 57.6)"
+        ],
+        "mode": "dark"
+      },
+      "c-bunker-dark": {
+        "role": "category",
+        "displayName": "Bunker (oscuro)",
+        "canonical": "#d8b85e",
+        "oklch": "oklch(79.2% 0.115 90.1)",
+        "tonalRamp": [
+          "oklch(15% 0.067 90.1)",
+          "oklch(26.4% 0.115 90.1)",
+          "oklch(37.9% 0.115 90.1)",
+          "oklch(49.3% 0.115 90.1)",
+          "oklch(60.7% 0.115 90.1)",
+          "oklch(72.1% 0.115 90.1)",
+          "oklch(83.6% 0.073 90.1)",
+          "oklch(95% 0.022 90.1)"
+        ],
+        "mode": "dark"
+      },
+      "c-putt-dark": {
+        "role": "category",
+        "displayName": "Putt (oscuro)",
+        "canonical": "#b48cf0",
+        "oklch": "oklch(71.7% 0.146 301.2)",
+        "tonalRamp": [
+          "oklch(15% 0.067 301.2)",
+          "oklch(26.4% 0.117 301.2)",
+          "oklch(37.9% 0.146 301.2)",
+          "oklch(49.3% 0.146 301.2)",
+          "oklch(60.7% 0.146 301.2)",
+          "oklch(72.1% 0.124 301.2)",
+          "oklch(83.6% 0.073 301.2)",
+          "oklch(95% 0.022 301.2)"
+        ],
+        "mode": "dark"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Solo el titular de la celebración, en volt. Cara display autoalojada pendiente de aprobación del usuario; hoy, pila del sistema."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Título de la barra superior."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Títulos de tarjeta y hoja; 1.4rem en el bloque de hoy."
+      },
+      "title-sm": {
+        "displayName": "Title small",
+        "purpose": "Días del plan y subtítulos; mensaje del diálogo a 1.05rem."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Valores de stats y cifras destacadas, siempre tabulares."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Texto corrido a 16 px."
+      },
+      "body-sm": {
+        "displayName": "Body small",
+        "purpose": "Metadatos y texto secundario."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Etiquetas de campo, leyendas y nombres de ejercicio."
+      },
+      "label-xs": {
+        "displayName": "Label XS",
+        "purpose": "Etiquetas de pestaña (800 en la activa)."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-lift",
+        "value": "0 1px 2px rgba(12, 22, 17, .06), 0 4px 14px rgba(12, 22, 17, .05)",
+        "purpose": "Tarjetas en modo claro; none en oscuro, en tarjetas destacadas y de pista."
+      },
+      {
+        "name": "dialog",
+        "value": "0 12px 40px rgba(0, 0, 0, .25)",
+        "purpose": "Solo el diálogo de confirmación."
+      },
+      {
+        "name": "scrim",
+        "value": "rgba(5, 9, 6, .55)",
+        "purpose": "Velo de la hoja inferior y backdrop del diálogo."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-soft",
+        "value": "cubic-bezier(.2, .8, .2, 1)",
+        "purpose": "Entrada de la hoja, barrido del anillo y rayos."
+      },
+      {
+        "name": "ease-pop",
+        "value": "cubic-bezier(.2, .9, .3, 1.35)",
+        "purpose": "Pop con rebote del check, del anillo recién registrado y del centro en la celebración."
+      },
+      {
+        "name": "sheet-up",
+        "value": ".22s",
+        "purpose": "Hoja inferior: sube 30 px y aparece."
+      },
+      {
+        "name": "fade",
+        "value": ".15s / .2s ease-out",
+        "purpose": "Velo de la hoja y entrada de la celebración."
+      },
+      {
+        "name": "pop",
+        "value": ".45s",
+        "purpose": "scale .3 → 1.18 → 1."
+      },
+      {
+        "name": "sweep",
+        "value": ".9s",
+        "purpose": "Arco del anillo de celebración desde stroke-dashoffset igual a su longitud; el centro hace pop a los .8s."
+      },
+      {
+        "name": "ray",
+        "value": ".6s, retraso 1s",
+        "purpose": "12 rayos volt cada 30°, de 88 a 128 px del centro."
+      },
+      {
+        "name": "toast",
+        "value": ".2s; visible 2.6s (3.4s en logro)",
+        "purpose": "Aparece subiendo 20 px."
+      },
+      {
+        "name": "celebrate-dismiss",
+        "value": "3600ms",
+        "purpose": "Cierre automático de la celebración; vibración [30, 60, 30]."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "Sin animación de hoja, toast, check, anillo ni celebración; rayos ocultos."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "column",
+        "value": "640px",
+        "purpose": "Ancho máximo de la columna; por encima, barra superior y pestañas se alinean con ella."
+      },
+      {
+        "name": "dark",
+        "value": "prefers-color-scheme: dark",
+        "purpose": "Remapeo a la paleta -dark; sin sombras; win-bg pasa a volt."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción principal: dock, \"Registrar\" del bloque de hoy y confirmar.",
+      "html": "<button class=\"ds-btn-primary\">Registrar resultado</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:44px; padding:0 16px; border-radius:12px; font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif; font-size:16px; font-weight:700; cursor:pointer; background:var(--primary, #0b6a3c); border:1px solid var(--primary, #0b6a3c); color:var(--on-primary, #ffffff); } .ds-btn-primary:hover { filter:brightness(1.08); } .ds-btn-primary:focus-visible { outline:3px solid var(--primary, #0b6a3c); outline-offset:2px; } .ds-btn-primary:active { transform:translateY(1px); }"
+    },
+    {
+      "name": "Botón secundario",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Acciones de apoyo y \"Cancelar\"; borde fuerte sobre superficie.",
+      "html": "<button class=\"ds-btn-secondary\">Cancelar</button>",
+      "css": ".ds-btn-secondary { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 16px; border-radius:12px; border:1px solid var(--line-strong, #7f8c84); background:var(--surface, #ffffff); color:var(--text, #0c1611); font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif; font-size:16px; font-weight:700; cursor:pointer; } .ds-btn-secondary:hover { background:var(--surface-2, #e8ede6); } .ds-btn-secondary:focus-visible { outline:3px solid var(--primary, #0b6a3c); outline-offset:2px; }"
+    },
+    {
+      "name": "Chip de filtro",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Filtro por área; activo en tinta invertida.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip is-active\" aria-pressed=\"true\">Todos</button><button class=\"ds-chip\" aria-pressed=\"false\">Putt</button><button class=\"ds-chip\" aria-pressed=\"false\">Bunker</button></div>",
+      "css": ".ds-chips { display:flex; flex-wrap:wrap; gap:8px; } .ds-chip { border:1px solid var(--line-strong, #7f8c84); background:var(--surface, #ffffff); color:var(--text, #0c1611); padding:7px 13px; border-radius:999px; font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif; font-size:.88rem; font-weight:600; cursor:pointer; } .ds-chip:hover { background:var(--surface-2, #e8ede6); } .ds-chip.is-active { background:var(--text, #0c1611); border-color:var(--text, #0c1611); color:var(--bg, #f2f4f0); } .ds-chip:focus-visible { outline:3px solid var(--primary, #0b6a3c); outline-offset:2px; }"
+    },
+    {
+      "name": "Campo",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo con etiqueta encima; foco en contorno primario hacia dentro.",
+      "html": "<label class=\"ds-field\"><span>Golpes</span><input type=\"number\" value=\"84\"></label>",
+      "css": ".ds-field { display:flex; flex-direction:column; gap:4px; font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif; font-size:.85rem; font-weight:650; color:var(--muted, #4f5c55); } .ds-field input { font:inherit; font-size:16px; font-weight:400; color:var(--text, #0c1611); background:var(--surface, #ffffff); border:1px solid var(--line-strong, #7f8c84); border-radius:10px; padding:10px 12px; } .ds-field input:hover { border-color:var(--text, #0c1611); } .ds-field input:focus { outline:2px solid var(--primary, #0b6a3c); outline-offset:-1px; border-color:transparent; }"
+    },
+    {
+      "name": "Barra de pestañas",
+      "kind": "nav",
+      "refersTo": "tabbar",
+      "description": "Pestañas en tinta de marco; la activa en volt con barra superior de 28 × 3 px.",
+      "html": "<nav class=\"ds-tabbar\" aria-label=\"Secciones\"><button class=\"is-active\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/></svg><span>Plan</span></button><button><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/></svg><span>Ejercicios</span></button><button><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 17l6-6 4 4 8-8M15 7h6v6\"/></svg><span>Progreso</span></button></nav>",
+      "css": ".ds-tabbar { display:grid; grid-template-columns:repeat(3,1fr); height:64px; background:var(--shell, #0d1f16); border-top:1px solid var(--shell-line, #2a4335); } .ds-tabbar button { position:relative; border:0; background:none; color:var(--shell-muted, #a3b6aa); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif; font-size:.72rem; font-weight:600; cursor:pointer; } .ds-tabbar svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; } .ds-tabbar button:hover { color:var(--on-shell, #f2f7f3); } .ds-tabbar button.is-active { color:var(--volt, #c6f432); font-weight:800; } .ds-tabbar button.is-active::before { content:\"\"; position:absolute; top:0; left:50%; width:28px; height:3px; margin-left:-14px; border-radius:0 0 3px 3px; background:var(--volt, #c6f432); } .ds-tabbar button:focus-visible { outline:3px solid var(--volt, #c6f432); outline-offset:-3px; }"
+    },
+    {
+      "name": "Tarjeta de semana",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Tarjeta clara con el anillo de la semana a la izquierda y la frase de foco.",
+      "html": "<section class=\"ds-card\"><div class=\"ds-week\"><svg class=\"ds-ring \" width=\"72\" height=\"72\" viewBox=\"0 0 72 72\" role=\"img\" aria-label=\"45%, objetivo 70%\"><circle class=\"ds-ring-track\" cx=\"36\" cy=\"36\" r=\"32\" stroke-width=\"8\"/><circle class=\"ds-ring-arc\" cx=\"36\" cy=\"36\" r=\"32\" stroke-width=\"8\" transform=\"rotate(-90 36 36)\" stroke-dasharray=\"201.1 201.1\" stroke-dashoffset=\"110.6\"/><line class=\"ds-ring-tick\" x1=\"13.4\" y1=\"56.1\" x2=\"5.6\" y2=\"63.1\"/><text class=\"ds-ring-text\" x=\"36\" y=\"36\" text-anchor=\"middle\" dominant-baseline=\"central\" font-size=\"14\">45%</text></svg><div><h2>Semana del 12 de octubre</h2><p>Esta semana, más <strong>putt</strong>.</p></div></div></section>",
+      "css": ".ds-card { background:var(--surface, #ffffff); color:var(--text, #0c1611); border:1px solid var(--line, #d5ddd5); border-radius:16px; padding:16px; box-shadow:0 1px 2px rgba(12,22,17,.06),0 4px 14px rgba(12,22,17,.05); font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif; } .ds-card h2 { margin:0 0 4px; font-family:\"Saira Condensed\",system-ui,sans-serif; font-size:1.5rem; font-weight:800; line-height:1.05; } .ds-card p { margin:0; font-size:.85rem; } .ds-week { display:flex; align-items:center; gap:16px; } .ds-ring { overflow:visible; flex:none; } .ds-ring-track { fill:none; stroke:var(--line, #d5ddd5); } .ds-ring-arc { fill:none; stroke:var(--primary, #0b6a3c); stroke-linecap:round; } .ds-ring-tick { stroke:var(--text, #0c1611); stroke-width:2.5; stroke-linecap:round; } .ds-ring-text { fill:var(--text, #0c1611); font-family:\"Saira Condensed\",system-ui,sans-serif; font-weight:800; font-variant-numeric:tabular-nums; }"
+    },
+    {
+      "name": "Anillo de objetivo",
+      "kind": "custom",
+      "refersTo": "target-ring",
+      "description": "Gesto propio: arco = valor, marca = objetivo; cumplido = arco volt y centro relleno con win-bg/win-fg.",
+      "html": "<div class=\"ds-rings\"><svg class=\"ds-ring \" width=\"72\" height=\"72\" viewBox=\"0 0 72 72\" role=\"img\" aria-label=\"45%, objetivo 70%\"><circle class=\"ds-ring-track\" cx=\"36\" cy=\"36\" r=\"32\" stroke-width=\"8\"/><circle class=\"ds-ring-arc\" cx=\"36\" cy=\"36\" r=\"32\" stroke-width=\"8\" transform=\"rotate(-90 36 36)\" stroke-dasharray=\"201.1 201.1\" stroke-dashoffset=\"110.6\"/><line class=\"ds-ring-tick\" x1=\"13.4\" y1=\"56.1\" x2=\"5.6\" y2=\"63.1\"/><text class=\"ds-ring-text\" x=\"36\" y=\"36\" text-anchor=\"middle\" dominant-baseline=\"central\" font-size=\"14\">45%</text></svg><svg class=\"ds-ring is-met\" width=\"72\" height=\"72\" viewBox=\"0 0 72 72\" role=\"img\" aria-label=\"90%, objetivo 70%\"><circle class=\"ds-ring-track\" cx=\"36\" cy=\"36\" r=\"32\" stroke-width=\"8\"/><circle class=\"ds-ring-arc\" cx=\"36\" cy=\"36\" r=\"32\" stroke-width=\"8\" transform=\"rotate(-90 36 36)\" stroke-dasharray=\"201.1 201.1\" stroke-dashoffset=\"20.1\"/><circle class=\"ds-ring-core\" cx=\"36\" cy=\"36\" r=\"26.5\"/><text class=\"ds-ring-text\" x=\"36\" y=\"36\" text-anchor=\"middle\" dominant-baseline=\"central\" font-size=\"14\">90%</text></svg></div>",
+      "css": ".ds-rings { display:flex; gap:24px; align-items:center; padding:12px; background:var(--surface, #ffffff); font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif; } .ds-ring { overflow:visible; } .ds-ring-track { fill:none; stroke:var(--line, #d5ddd5); } .ds-ring-arc { fill:none; stroke:var(--primary, #0b6a3c); stroke-linecap:round; } .ds-ring.is-met .ds-ring-arc { stroke:var(--volt, #c6f432); } .ds-ring-tick { stroke:var(--text, #0c1611); stroke-width:2.5; stroke-linecap:round; } .ds-ring-core { fill:var(--win-bg, #0c1611); } .ds-ring-text { fill:var(--text, #0c1611); font-family:\"Saira Condensed\",system-ui,sans-serif; font-weight:800; font-variant-numeric:tabular-nums; } .ds-ring.is-met .ds-ring-text { fill:var(--win-fg, #c6f432); }"
+    },
+    {
+      "name": "Bloque de hoy",
+      "kind": "card",
+      "refersTo": "card-hero",
+      "description": "Tarjeta en color de marco con tokens remapeados; fila pendiente con Registrar y fila hecha con anillo cumplido.",
+      "html": "<section class=\"ds-hero\"><h2>Hoy toca entrenar</h2><p><strong>2 ejercicios · 35 min.</strong></p><ul><li><span class=\"ds-check\"></span><span class=\"ds-name\">Escalera de putts<small>Putt · 15 min · 20 intentos</small></span><button class=\"ds-hero-btn\">Registrar</button></li><li><svg width=\"30\" height=\"30\" viewBox=\"0 0 30 30\" aria-hidden=\"true\"><circle cx=\"15\" cy=\"15\" r=\"13\" fill=\"none\" stroke=\"#2a4335\" stroke-width=\"4\"/><circle cx=\"15\" cy=\"15\" r=\"13\" fill=\"none\" stroke=\"#c6f432\" stroke-width=\"4\" stroke-linecap=\"round\" transform=\"rotate(-90 15 15)\" stroke-dasharray=\"81.7 81.7\" stroke-dashoffset=\"10.6\"/><circle cx=\"15\" cy=\"15\" r=\"9.5\" fill=\"#c6f432\"/><path d=\"M10.7 15.2 L14 18.4 L19.6 12\" fill=\"none\" stroke=\"#0c1611\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg><span class=\"ds-name\">Salidas de bunker<small>Bunker · 20 min · 15 intentos</small></span><span class=\"ds-pct\">13/15 · 87%</span></li></ul></section>",
+      "css": ".ds-hero { background:var(--shell, #0d1f16); color:var(--on-shell, #f2f7f3); border:1px solid var(--shell-line, #2a4335); border-radius:16px; padding:16px; font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif; } .ds-hero h2 { margin:0; font-family:\"Saira Condensed\",system-ui,sans-serif; font-size:1.75rem; font-weight:800; line-height:1.05; } .ds-hero p { margin:.4rem 0; font-size:.85rem; } .ds-hero ul { list-style:none; margin:0; padding:0; } .ds-hero li { display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--shell-line, #2a4335); } .ds-hero li:first-child { border-top:0; } .ds-check { width:26px; height:26px; border-radius:50%; border:2px solid var(--shell-muted, #a3b6aa); flex:none; } .ds-name { flex:1; font-weight:650; } .ds-name small { display:block; font-size:.82rem; font-weight:400; color:var(--shell-muted, #a3b6aa); } .ds-hero-btn { min-height:40px; padding:0 12px; border-radius:10px; border:1px solid var(--on-shell, #f2f7f3); background:var(--on-shell, #f2f7f3); color:var(--shell, #0d1f16); font:inherit; font-size:.85rem; font-weight:700; cursor:pointer; } .ds-hero-btn:hover { filter:brightness(.92); } .ds-hero-btn:focus-visible { outline:3px solid var(--volt, #c6f432); outline-offset:2px; } .ds-pct { font-family:\"Saira Condensed\",system-ui,sans-serif; font-weight:800; font-size:1.1rem; font-variant-numeric:tabular-nums; color:var(--volt, #c6f432); }"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast-win",
+      "description": "Aviso breve sobre las pestañas en tinta invertida; la variante de logro va en volt.",
+      "html": "<div class=\"ds-toasts\"><div class=\"ds-toast\">Registro guardado</div><div class=\"ds-toast is-win\">Objetivo cumplido</div></div>",
+      "css": ".ds-toasts { display:flex; flex-direction:column; gap:10px; align-items:flex-start; } .ds-toast { background:var(--text, #0c1611); color:var(--bg, #f2f4f0); padding:11px 16px; border-radius:12px; font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif; font-size:.92rem; font-weight:600; } .ds-toast.is-win { background:var(--volt, #c6f432); color:var(--on-volt, #0c1611); font-weight:800; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El anillo contra el objetivo",
+    "overview": "Golf Plan es un cuaderno de entrenamiento con identidad deportiva moderna: alto contraste, tinta oscura en el marco y un único gesto propio. Cada resultado (un ejercicio, un área, la semana) se dibuja como un anillo con una marca de objetivo; cumplirlo enciende el anillo en lima \"volt\". El resto de la interfaz es deliberadamente sobrio para que ese encendido signifique algo.\n\nLa app se usa de pie, con una mano y a pleno sol, así que la densidad es la de una herramienta: columna única de 640 px como máximo, tarjetas claras sobre un fondo frío, objetivos táctiles de 40 a 50 px y la acción principal fija al alcance del pulgar. El marco (barra superior, pestañas, bloque de \"Hoy\" y celebración) vive en tinta verde casi negra; el contenido, en superficies claras. En modo oscuro el marco baja a casi negro y el contenido sube a verdes apagados, con la misma lógica de roles.\n\nEl movimiento es escaso y con propósito: la hoja sube, el check salta, y solo el logro tiene coreografía (barrido del anillo, pop del centro, rayos). Todo tiene alternativa para movimiento reducido.",
+    "keyCharacteristics": [
+      "Anillo de objetivo como gesto propio: arco = valor, marca = objetivo, centro encendido = cumplido.",
+      "Tres capas de color: marco en tinta (`shell`), acción en verde de calle (`primary`), logro en volt.",
+      "Tipografía del sistema muy pesada (750 a 900) con cifras tabulares.",
+      "Esquinas de 16 px en tarjetas, píldoras en chips; sin sombras de color ni brillos.",
+      "Celebración a pantalla completa como único momento expresivo."
+    ],
+    "rules": [
+      {
+        "name": "The Volt Is Earned Rule",
+        "body": "El volt se gana: aparece cuando se cumple un objetivo (anillo, check, celebración, toast de logro) y, como señal de posición, en el indicador de pestaña activa y el foco sobre el marco oscuro. Nunca en botones de acción ordinarios, fondos de sección ni decoración.",
+        "section": "colors"
+      },
+      {
+        "name": "The Win Inversion Rule",
+        "body": "El logro se pinta con el par `win-bg`/`win-fg`: en claro, centro de tinta con check volt; en oscuro y sobre el marco, centro volt con check de tinta. El estado cumplido siempre lleva el centro relleno; el arco volt nunca comunica el logro por sí solo sobre superficies claras.",
+        "section": "colors"
+      },
+      {
+        "name": "The Shell Remap Rule",
+        "body": "Un bloque en color de marco no reescribe componentes: redefine los tokens (`--surface`, `--text`, `--muted`, `--line`, `--primary`, `--win-bg`...) a sus equivalentes de marco, y los componentes de dentro se adaptan solos.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Numbers Rule",
+        "body": "Toda cifra que se compara (porcentajes, aciertos, golpes, minutos, tablas, stepper) usa `font-variant-numeric: tabular-nums`.",
+        "section": "typography"
+      },
+      {
+        "name": "The Heavy Ink Rule",
+        "body": "Ningún titular baja de 800: títulos y cifras van en Saira Condensed 800/900 (autoalojada, OFL). El peso hace el trabajo que en otros sistemas haría el tamaño o el color.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Glow Rule",
+        "body": "Ni sombras de color ni brillos. El volt se enciende por relleno, no por halo.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do representar cualquier resultado frente a un objetivo con el anillo: arco, marca de objetivo y centro relleno al cumplirlo.",
+      "Do reservar el volt para logros y para la posición activa sobre el marco oscuro (pestaña activa, foco).",
+      "Do usar el par `win-bg`/`win-fg` para todo estado cumplido, para que se invierta bien entre claro y oscuro.",
+      "Do remapear tokens en los bloques de marco en vez de duplicar estilos de componente.",
+      "Do usar cifras tabulares y pesos de 750 a 900 en titulares y números.",
+      "Do fijar la acción principal en el dock cuando la pantalla la tiene, y usar el botón primario solo para la acción principal (dock, \"Registrar\" de hoy, confirmar).",
+      "Do dar a cada animación su alternativa para movimiento reducido."
+    ],
+    "donts": [
+      "Don't usar volt en botones de acción ordinarios, fondos de sección o decoración.",
+      "Don't comunicar el logro solo con el arco volt sobre superficie clara; siempre con el centro relleno.",
+      "Don't usar sombras de color ni brillos; en oscuro, ninguna sombra.",
+      "Don't usar los colores de área como fondo o color de acción; son puntos y barras.",
+      "Don't cargar fuentes alojadas fuera; la app funciona sin conexión.",
+      "Don't convertir la celebración a pantalla completa en un aviso corriente: es solo para objetivo cumplido, sesión o semana completadas."
+    ]
+  }
+}

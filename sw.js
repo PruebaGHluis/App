@@ -1,6 +1,6 @@
 // Service worker: permite usar la app sin conexión en el campo.
 // Estrategia "red primero": si hay conexión se carga la última versión; si no, la copia guardada.
-const CACHE = 'golfplan-v2';
+const CACHE = 'golfplan-v6';
 const ASSETS = [
   './',
   'index.html',
@@ -11,6 +11,8 @@ const ASSETS = [
   'js/plan.js',
   'js/charts.js',
   'manifest.webmanifest',
+  'fonts/saira-condensed-800.woff2',
+  'fonts/saira-condensed-900.woff2',
   'icons/icon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png',

@@ -19,21 +19,49 @@ const fmtSigned = (v) => (v > 0 ? '+' : '') + (Number.isInteger(v) ? v : v.toFix
 const num = (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? null : Number(v));
 const byDateDesc = (a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id);
 const byDateAsc = (a, b) => -byDateDesc(a, b);
-const CHECK_SVG = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>';
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const CLOSE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const APP_REGIONS = '.topbar, #view, .tabbar';
 
-function toast(msg) {
-  const t = $('#toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => t.classList.remove('show'), 2600);
+// Hándicap: se guarda como número; los hándicaps plus se guardan en negativo y se muestran con "+".
+const fmtHcp = (v) => (v === '' || v == null ? '' : v < 0 ? '+' + String(-v).replace('.', ',') : String(v).replace('.', ','));
+function parseHcp(text) {
+  const m = String(text ?? '').trim().replace(',', '.').match(/^([+-]?)(\d{1,2}(?:\.\d)?)$/);
+  if (!m) return null;
+  const v = Number(m[2]) * (m[1] ? -1 : 1);
+  return v >= -10 && v <= 54 ? v : null;
 }
 
-const CLOSE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+function toast(msg, kind = '') {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.toggle('win', kind === 'win');
+  t.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => t.classList.remove('show'), kind === 'win' ? 3400 : 2600);
+}
+
+// Diálogo de confirmación propio (sustituye a confirm()). Devuelve una promesa con true/false.
+function ask(message, { ok = 'Aceptar', danger = false, detail = '' } = {}) {
+  const dlg = $('#ask');
+  dlg.innerHTML = `<form method="dialog">
+    <p class="ask-msg">${esc(message)}</p>
+    ${detail ? `<p class="small muted">${esc(detail)}</p>` : ''}
+    <div class="ask-actions">
+      <button class="btn" value="cancel" autofocus>Cancelar</button>
+      <button class="btn ${danger ? 'btn-danger-solid' : 'btn-primary'}" value="ok">${esc(ok)}</button>
+    </div></form>`;
+  dlg.returnValue = '';
+  dlg.showModal();
+  return new Promise((resolve) => dlg.addEventListener('close', () => resolve(dlg.returnValue === 'ok'), { once: true }));
+}
+
+// ── Hoja inferior ──
 let sheetOpener = null;
 
 function openSheet(html) {
   if (sheet.hidden) sheetOpener = document.activeElement;
+  delete sheet.dataset.dirty;
   sheet.innerHTML = `<div class="sheet-backdrop" data-action="close-sheet"></div>
     <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1">
       <div class="grab"></div>
@@ -42,24 +70,82 @@ function openSheet(html) {
   sheet.querySelector('.sheet-panel h2')?.setAttribute('id', 'sheet-title');
   sheet.hidden = false;
   document.body.style.overflow = 'hidden';
-  document.querySelectorAll('.topbar, #view, .tabbar').forEach((el) => { el.inert = true; });
+  document.querySelectorAll(APP_REGIONS).forEach((el) => { el.inert = true; });
   sheet.querySelector('.sheet-panel').focus();
 }
 function closeSheet() {
   sheet.hidden = true;
   sheet.innerHTML = '';
+  delete sheet.dataset.dirty;
   document.body.style.overflow = '';
-  document.querySelectorAll('.topbar, #view, .tabbar').forEach((el) => { el.inert = false; });
+  document.querySelectorAll(APP_REGIONS).forEach((el) => { el.inert = false; });
   if (sheetOpener?.isConnected) sheetOpener.focus();
   sheetOpener = null;
+}
+// Cierre pedido por el usuario: si ha escrito algo, pregunta antes de descartarlo.
+async function requestCloseSheet() {
+  if (sheet.dataset.dirty && !(await ask('¿Descartar lo que has escrito?', { ok: 'Descartar', danger: true }))) return;
+  closeSheet();
 }
 
 const catDot = (cat) => `<span class="dot cat-${cat}" aria-hidden="true"></span>`;
 
+// Anillo de objetivo: el arco es el valor (0-100), la marca es el objetivo y, si se cumple,
+// el centro se enciende con un check o con el texto central.
+function ring(value, { target = null, size = 34, stroke = 4, center = '', label = '' } = {}) {
+  const v = Math.max(0, Math.min(100, value ?? 0));
+  const met = value != null && value >= (target ?? 100);
+  const low = !met && target != null && value < target * 0.8;
+  const c = size / 2, r = (size - stroke) / 2, len = 2 * Math.PI * r;
+  let tick = '';
+  if (target != null) {
+    const a = (target / 100) * 2 * Math.PI - Math.PI / 2;
+    const r1 = r - stroke / 2, r2 = r + stroke * 1.1; // solo hacia fuera, para no tocar la cifra central
+    tick = `<line class="ring-tick" x1="${c + r1 * Math.cos(a)}" y1="${c + r1 * Math.sin(a)}" x2="${c + r2 * Math.cos(a)}" y2="${c + r2 * Math.sin(a)}"/>`;
+  }
+  const rc = r - stroke / 2 - Math.max(1.5, size * 0.04);
+  const core = met ? `<circle class="ring-core" cx="${c}" cy="${c}" r="${rc}"/>` : '';
+  const mark = met && !center
+    ? `<path class="ring-check" stroke-width="${Math.max(2.2, size * 0.07)}" d="M${c - rc * 0.45} ${c + rc * 0.02} L${c - rc * 0.1} ${c + rc * 0.36} L${c + rc * 0.48} ${c - rc * 0.32}"/>`
+    : '';
+  // El texto central cabe dentro del núcleo: cuantos más caracteres, más pequeño.
+  const fs = size * (center.length >= 5 ? 0.17 : center.length === 4 ? 0.2 : 0.26);
+  const text = center ? `<text class="ring-text" x="${c}" y="${c}" text-anchor="middle" dominant-baseline="central" font-size="${fs}">${center}</text>` : '';
+  return `<svg class="ring ${met ? 'met' : ''} ${low ? 'low' : ''}" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"
+      ${label ? `role="img" aria-label="${esc(label)}"` : 'aria-hidden="true"'} style="--len:${len.toFixed(1)}">
+    <circle class="ring-track" cx="${c}" cy="${c}" r="${r}" stroke-width="${stroke}"/>
+    <circle class="ring-arc" cx="${c}" cy="${c}" r="${r}" stroke-width="${stroke}" transform="rotate(-90 ${c} ${c})"
+      stroke-dasharray="${len.toFixed(1)} ${len.toFixed(1)}" stroke-dashoffset="${(len * (1 - v / 100)).toFixed(1)}" ${v === 0 ? 'opacity="0"' : ''}/>
+    ${tick}${core}${mark}${text}
+  </svg>`;
+}
+
 function resultBadge(successes, attempts, target) {
   const p = pct(successes, attempts);
-  const cls = p >= target ? 'ok' : p >= target * 0.8 ? '' : 'warn';
-  return `<span class="badge ${cls} num">${successes}/${attempts} · ${p}%</span>`;
+  return `<span class="score ${p >= target ? 'met' : ''}" role="img" aria-label="${successes} de ${attempts}, ${p}%, objetivo ${target}%">
+    ${ring(p, { target })}<span class="score-pct num" aria-hidden="true">${p}%</span></span>`;
+}
+
+// Celebración a pantalla completa para los logros: objetivo cumplido, sesión y semana completadas.
+function celebrate({ title, detail, value = 100, target = null, center = '' }) {
+  const el = $('#celebrate');
+  const rays = Array.from({ length: 12 }, (_, i) => `<span class="ray" style="--a:${i * 30}deg"></span>`).join('');
+  el.innerHTML = `<div class="burst">${rays}${ring(value, { target, size: 168, stroke: 14, center })}</div>
+    <h2>${esc(title)}</h2>
+    <p>${esc(detail)}</p>
+    <button class="btn" data-action="close-celebrate">Seguir</button>`;
+  el.hidden = false;
+  el.querySelector('.btn').focus();
+  if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.([30, 60, 30]);
+  clearTimeout(celebrate.timer);
+  celebrate.timer = setTimeout(closeCelebrate, 3600);
+}
+function closeCelebrate() {
+  const el = $('#celebrate');
+  if (el.hidden) return;
+  clearTimeout(celebrate.timer);
+  el.hidden = true;
+  el.innerHTML = '';
 }
 
 function stepper(name, label, value, min = 0) {
@@ -72,17 +158,31 @@ function stepper(name, label, value, min = 0) {
 }
 
 // ── Plan semanal ──
+const sessionById = (id) => getState().sessions.find((s) => s.id === id);
+const isTicked = (it) => !!(it.sessionId && sessionById(it.sessionId));
+// Los días anteriores al alta se muestran, pero no cuentan para el progreso de la semana.
+const dayCounts = (plan, day) => !plan.start || addDays(plan.week, day.dow) >= plan.start;
+const dayMinutes = (day) => day.items.reduce((a, it) => a + (drillById(it.drillId)?.minutes || 0), 0);
+let justDone = null;
+
+function weekSummary(plan) {
+  const items = plan.days.filter((d) => dayCounts(plan, d)).flatMap((d) => d.items);
+  const sessions = items.filter(isTicked).map((it) => sessionById(it.sessionId));
+  const met = sessions.filter((s) => pct(s.successes, s.attempts) >= (drillById(s.drillId)?.target ?? 101)).length;
+  return { week: plan.week, done: sessions.length, total: items.length, met };
+}
+
 function ensurePlan() {
   const st = getState();
   const wk = weekKey();
   if (!st.plan || st.plan.week !== wk) {
-    update((s) => { s.plan = generatePlan(s.profile, s.rounds, s.sessions, hashStr(wk), wk); });
+    update((s) => {
+      if (s.plan?.week === addDays(wk, -7)) s.lastWeek = weekSummary(s.plan);
+      s.plan = generatePlan(s.profile, s.rounds, s.sessions, hashStr(wk), wk);
+    });
   }
   return getState().plan;
 }
-
-const sessionById = (id) => getState().sessions.find((s) => s.id === id);
-const isTicked = (it) => !!(it.sessionId && sessionById(it.sessionId));
 
 // Marca en el plan el ejercicio de un registro. Si no viene de un día concreto (p. ej. desde la ficha
 // del ejercicio), usa el hueco pendiente de ese ejercicio en el día del registro, o el primero de la semana.
@@ -99,9 +199,10 @@ function linkToPlan(plan, session, day, idx) {
   if (pick) pick.it.sessionId = session.id;
 }
 
-// Al regenerar el plan de la misma semana, conserva las marcas de los ejercicios que siguen en él.
+// Al regenerar el plan de la misma semana, conserva el día de alta y las marcas de los ejercicios que siguen en él.
 function carryTicks(oldPlan, plan) {
   if (!oldPlan || oldPlan.week !== plan.week) return plan;
+  if (oldPlan.start) plan.start = oldPlan.start;
   const done = oldPlan.days.flatMap((d) => d.items.filter(isTicked).map((it) => ({ dow: d.dow, ...it })));
   const slots = plan.days.flatMap((d) => d.items.map((it) => ({ dow: d.dow, it })));
   for (const t of done) {
@@ -112,16 +213,83 @@ function carryTicks(oldPlan, plan) {
   return plan;
 }
 
+function planItem(di, ii, it, primary) {
+  const d = drillById(it.drillId);
+  if (!d) return '';
+  const s = isTicked(it) && sessionById(it.sessionId);
+  const p = s ? pct(s.successes, s.attempts) : null;
+  // Hecho: un solo anillo con el resultado frente al objetivo. Pendiente: círculo vacío y botón.
+  return `<li><div class="item ${s ? 'done' : ''} ${s && s.id === justDone ? 'just' : ''} cat-${d.cat}">
+    ${s ? `<span class="result">${ring(p, { target: d.target, size: 30 })}</span>` : '<span class="check" aria-hidden="true"></span>'}
+    <button class="grow item" style="padding:0" data-nav="ejercicio/${d.id}">
+      <span class="grow"><span class="name">${esc(d.name)}${s ? `<span class="sr-only"> (hecho: ${s.successes} de ${s.attempts}, objetivo ${d.target}%)</span>` : ''}</span>
+      <span class="meta row">${catDot(d.cat)} ${CATEGORIES[d.cat].short} · ${d.minutes} min · ${d.attempts} intentos</span></span>
+    </button>
+    ${s ? `<span class="score-pct num ${p >= d.target ? 'met' : ''}" aria-hidden="true">${p}%</span>`
+        : `<button class="btn btn-sm ${primary ? 'btn-primary' : ''}" data-action="log" data-drill="${d.id}" data-day="${di}" data-idx="${ii}" aria-label="Registrar ${esc(d.name)}">Registrar</button>`}
+  </div></li>`;
+}
+
+function focusSentence(weights, reasons) {
+  const ranked = Object.keys(weights).filter((c) => reasons[c].length).sort((a, b) => weights[b] - weights[a]).slice(0, 2);
+  if (!ranked.length) return 'Plan equilibrado: todavía no hay datos que señalen un punto débil.';
+  const part = (c) => `<strong>${CATEGORIES[c].name}</strong> <span class="muted">(${esc(reasons[c].join(' · ').toLowerCase())})</span>`;
+  return `Esta semana, más ${ranked.map(part).join(' y ')}.`;
+}
+
 function renderPlan() {
   const st = getState();
   const plan = ensurePlan();
   const { weights, reasons } = computeFocus(st.profile, st.rounds, st.sessions);
   const today = todayDow();
-  const allItems = plan.days.flatMap((d) => d.items);
-  const done = allItems.filter((it) => it.sessionId && sessionById(it.sessionId)).length;
+  const { done, total } = weekSummary(plan);
+  const dayLabel = (day) => `${DOW[day.dow].toLowerCase()} ${fmtDate(addDays(plan.week, day.dow))}`;
+  const di = (day) => plan.days.indexOf(day);
+
+  if (!plan.days.length) {
+    return '<div class="card empty">No has elegido días de entrenamiento. Configúralos en tu perfil.</div>';
+  }
+
+  // Resumen de la semana pasada (una vez, hasta que se cierra).
+  const lw = st.lastWeek;
+  const lastWeekCard = lw && lw.total && lw.week === addDays(plan.week, -7) && !lw.dismissed
+    ? `<section class="card summary">
+        <div class="card-title"><h2>Tu semana pasada</h2>
+          <button class="x-btn" data-action="dismiss-summary" aria-label="Cerrar resumen">${CLOSE_SVG}</button></div>
+        <p><strong class="num">${lw.done} de ${lw.total}</strong> ejercicios hechos · <strong class="num">${lw.met}</strong> con el objetivo cumplido.</p>
+        <p class="small muted">${lw.done === lw.total ? 'Semana completa. Así es como se baja hándicap.'
+          : lw.done * 2 >= lw.total ? 'Buena constancia. Esta semana, a por todos.'
+          : 'Semana nueva, plan nuevo: empieza por la próxima sesión.'}</p>
+      </section>`
+    : '';
+
+  // Bloque principal: qué hacer ahora.
+  const todayPlan = plan.days.find((d) => d.dow === today && dayCounts(plan, d));
+  const nextDay = plan.days.find((d) => d.dow > today);
+  let hero;
+  if (total && done === total) {
+    hero = `<section class="card hero win"><h2>Semana completada</h2>
+      <p class="small">Has hecho los ${total} ejercicios del plan. El lunes tendrás uno nuevo, ajustado a tus resultados.</p>
+      ${todayPlan ? `<ul class="list">${todayPlan.items.map((it, ii) => planItem(di(todayPlan), ii, it, true)).join('')}</ul>` : ''}</section>`;
+  } else if (todayPlan) {
+    const pending = todayPlan.items.filter((it) => !isTicked(it)).length;
+    hero = `<section class="card hero ${pending ? '' : 'win'}">
+      <h2>${pending ? 'Hoy toca entrenar' : 'Sesión de hoy completada'}</h2>
+      <p class="small"><strong class="num">${plural(todayPlan.items.length, 'ejercicio', 'ejercicios')} · ${dayMinutes(todayPlan)} min.</strong>
+        ${pending ? 'Toca uno para ver cómo se hace y registra el resultado al terminar.'
+        : nextDay ? `Próxima sesión: ${dayLabel(nextDay)}.` : 'No quedan más sesiones esta semana.'}</p>
+      <ul class="list">${todayPlan.items.map((it, ii) => planItem(di(todayPlan), ii, it, true)).join('')}</ul>
+    </section>`;
+  } else {
+    hero = `<section class="card hero"><h2>Hoy descansas</h2>
+      <p class="small">${nextDay
+        ? `Próxima sesión: <strong>${dayLabel(nextDay)}</strong> · ${plural(nextDay.items.length, 'ejercicio', 'ejercicios')} · ${dayMinutes(nextDay)} min.`
+        : 'No quedan sesiones esta semana. El lunes tendrás un plan nuevo.'}
+        Mientras, puedes registrar una vuelta o añadir distancias.</p></section>`;
+  }
 
   const maxW = Math.max(...Object.values(weights));
-  const focus = Object.entries(weights)
+  const focusBars = Object.entries(weights)
     .sort((a, b) => b[1] - a[1])
     .map(([cat, w]) => `
       <div class="cat-${cat}" style="margin-top:10px">
@@ -131,53 +299,46 @@ function renderPlan() {
       </div>`)
     .join('');
 
-  const todayPlan = plan.days.find((d) => d.dow === today);
-  const nextDay = plan.days.find((d) => d.dow > today);
-  const todayCard = todayPlan
-    ? `<div class="card highlight"><h2>Hoy toca entrenar</h2>
-        <p class="small">${todayPlan.items.length} ejercicios · ${todayPlan.items.reduce((a, it) => a + (drillById(it.drillId)?.minutes || 0), 0)} min. Toca cada uno para ver cómo se hace.</p></div>`
-    : `<div class="card highlight"><h2>Hoy es día de descanso</h2>
-        <p class="small">${nextDay ? `Próxima sesión: ${DOW[nextDay.dow].toLowerCase()}.` : 'No quedan sesiones esta semana.'} Puedes registrar una vuelta o añadir distancias.</p></div>`;
+  const weekCard = `<section class="card">
+    <div class="week">
+      ${ring(total ? (done / total) * 100 : 0, { size: 92, stroke: 10, center: `${done}/${total}`, label: `${done} de ${total} ejercicios hechos esta semana` })}
+      <div class="grow">
+        <h2>Semana del ${fmtDate(plan.week, { day: 'numeric', month: 'long' })}</h2>
+        <p class="small focus-line">${focusSentence(weights, reasons)}</p>
+      </div>
+    </div>
+    <details class="focus-more"><summary class="small">Por qué este plan</summary>
+      <p class="small muted">Se calcula con tus puntos débiles, tus últimas 5 vueltas y tus resultados del último mes, y se recalcula cada lunes. Si acabas de registrar vueltas o resultados y quieres aplicarlos ya, genera otro plan.</p>
+      ${focusBars}
+      <button class="btn btn-block" data-action="regen-plan" style="margin-top:14px">Generar otro plan para esta semana</button>
+    </details>
+  </section>`;
 
-  const days = plan.days.map((day, di) => {
-    const date = addDays(plan.week, day.dow);
-    const isToday = day.dow === today;
-    const isPast = day.dow < today;
-    const items = day.items.map((it, ii) => {
-      const d = drillById(it.drillId);
-      if (!d) return '';
-      const s = it.sessionId && sessionById(it.sessionId);
-      return `<li><div class="item ${s ? 'done' : ''} cat-${d.cat}">
-        <span class="check">${s ? CHECK_SVG : ''}</span>
-        <button class="grow item" style="padding:0" data-nav="ejercicio/${d.id}">
-          <span class="grow"><span class="name">${esc(d.name)}</span>
-          <span class="meta row">${catDot(d.cat)} ${CATEGORIES[d.cat].short} · ${d.minutes} min · ${d.attempts} intentos</span></span>
-        </button>
-        ${s ? resultBadge(s.successes, s.attempts, d.target)
-            : `<button class="btn btn-sm ${isToday ? 'btn-primary' : ''}" data-action="log" data-drill="${d.id}" data-day="${di}" data-idx="${ii}" aria-label="Registrar ${esc(d.name)}">Registrar</button>`}
-      </div></li>`;
-    }).join('');
-    return `<section class="card ${isToday ? 'today' : ''}" ${isPast && !isToday ? 'style="opacity:.75"' : ''}>
-      <div class="card-title"><h3>${DOW[day.dow]} <span class="muted small">${fmtDate(date)}</span></h3>
-        ${isToday ? '<span class="badge primary">Hoy</span>' : ''}</div>
-      <ul class="list">${items}</ul>
-    </section>`;
-  }).join('');
+  const upcoming = plan.days.filter((d) => d.dow > today).map((day) => `<section class="card">
+      <div class="card-title"><h3>${DOW[day.dow]} <span class="muted small">${fmtDate(addDays(plan.week, day.dow))}</span></h3>
+        <span class="muted small num">${dayMinutes(day)} min</span></div>
+      <ul class="list">${day.items.map((it, ii) => planItem(di(day), ii, it, false)).join('')}</ul>
+    </section>`).join('');
+
+  const past = plan.days.filter((d) => d.dow < today || (d.dow === today && !dayCounts(plan, d)));
+  let pastCard = '';
+  if (past.length) {
+    const counted = past.filter((d) => dayCounts(plan, d));
+    const items = counted.flatMap((d) => d.items);
+    const line = counted.length ? `${items.filter(isTicked).length}/${items.length} hechos` : 'antes de empezar el plan';
+    pastCard = `<details class="card past"><summary><strong>Días anteriores</strong> <span class="muted small">· ${line}</span></summary>
+      ${past.map((day) => `<div class="past-day">
+        <h3>${DOW[day.dow]} <span class="muted small">${fmtDate(addDays(plan.week, day.dow))}${dayCounts(plan, day) ? '' : ' · antes de empezar, no cuenta'}</span></h3>
+        <ul class="list">${day.items.map((it, ii) => planItem(di(day), ii, it, false)).join('')}</ul></div>`).join('')}
+    </details>`;
+  }
 
   return `<div class="stack">
-    ${todayCard}
-    <div class="card">
-      <div class="card-title"><h2>Semana del ${fmtDate(plan.week, { day: 'numeric', month: 'long' })}</h2>
-        <span class="badge num">${done}/${allItems.length}</span></div>
-      <div class="bar"><span style="width:${allItems.length ? (done / allItems.length) * 100 : 0}%"></span></div>
-    </div>
-    ${days || '<div class="card empty">No has elegido días de entrenamiento. Configúralos en tu perfil.</div>'}
-    <details class="card">
-      <summary><strong>Foco de la semana</strong> <span class="muted small">— por qué este plan</span></summary>
-      <p class="small muted">Se calcula a partir de tus puntos débiles, tus últimas 5 vueltas y tus resultados en los ejercicios del último mes.</p>
-      ${focus}
-    </details>
-    <button class="btn btn-block" data-action="regen-plan">Generar otro plan para esta semana</button>
+    ${lastWeekCard}
+    ${hero}
+    ${weekCard}
+    ${upcoming}
+    ${pastCard}
   </div>`;
 }
 
@@ -190,8 +351,9 @@ function lastSession(drillId) {
 
 function renderDrills() {
   const advanced = Number(getState().profile.handicap) <= 10;
+  const inPlan = new Set(ensurePlan().days.flatMap((d) => d.items.filter((it) => !isTicked(it)).map((it) => it.drillId)));
   const chips = [['todos', 'Todos'], ...Object.entries(CATEGORIES).map(([k, v]) => [k, v.short])]
-    .map(([k, label]) => `<button class="chip ${drillFilter === k ? 'active' : ''}" data-action="filter" data-cat="${k}">${label}</button>`)
+    .map(([k, label]) => `<button class="chip ${drillFilter === k ? 'active' : ''}" data-action="filter" data-cat="${k}" aria-pressed="${drillFilter === k}">${label}</button>`)
     .join('');
   const list = DRILLS.filter((d) => drillFilter === 'todos' || d.cat === drillFilter)
     .map((d) => {
@@ -200,12 +362,12 @@ function renderDrills() {
         ${catDot(d.cat)}
         <span class="grow"><span class="name">${esc(d.name)}</span>
           <span class="meta">${esc(d.summary)}</span>
-          <span class="meta">${d.minutes} min · objetivo ${d.target}%${d.level === 'avanzado' ? ' · avanzado' : ''}</span></span>
+          <span class="meta">${d.minutes} min · objetivo ${d.target}%${d.level === 'avanzado' ? ' · avanzado' : ''}${inPlan.has(d.id) ? ' · <strong class="in-plan">en tu plan</strong>' : ''}</span></span>
         ${last ? resultBadge(last.successes, last.attempts, d.target) : ''}
       </button></li>`;
     }).join('');
   return `<div class="stack">
-    <div class="chips">${chips}</div>
+    <div class="chips" role="group" aria-label="Filtrar por área">${chips}</div>
     ${!advanced ? '<p class="small muted">Los ejercicios marcados como avanzados no entran en tu plan automático (hándicap > 10), pero puedes hacerlos cuando quieras.</p>' : ''}
     <div class="card"><ul class="list">${list}</ul></div>
   </div>`;
@@ -217,13 +379,13 @@ function renderDrill(id) {
   const history = getState().sessions.filter((s) => s.drillId === id).sort(byDateDesc);
   const chrono = [...history].reverse();
   const chart = chrono.length >= 2
-    ? lineChart(chrono.map((s) => ({ label: fmtDate(s.date), y: pct(s.successes, s.attempts) })),
+    ? lineChart(chrono.map((s) => ({ t: s.date, label: fmtDate(s.date), y: pct(s.successes, s.attempts) })),
         { target: d.target, min: 0, max: 100, suffix: '%', label: `Evolución de ${d.name}` })
     : '';
   const avg = mean(history.slice(0, 5).map((s) => pct(s.successes, s.attempts)));
 
   return `<div class="stack">
-    <button class="btn btn-ghost btn-sm" data-nav="entrenar" style="padding-left:0">‹ Ejercicios</button>
+    <button class="btn btn-ghost btn-sm" data-nav="entrenar" style="padding-left:0"><svg class="back-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Ejercicios</button>
     <div class="card cat-${d.cat}">
       <div class="row small muted">${catDot(d.cat)} ${CATEGORIES[d.cat].name} · ${d.minutes} min · ${d.attempts} intentos${d.level === 'avanzado' ? ' · avanzado' : ''}</div>
       <h2 style="margin-top:6px">${esc(d.name)}</h2>
@@ -233,17 +395,20 @@ function renderDrill(id) {
       <p><strong>Objetivo:</strong> ${d.target}% de aciertos.</p>
       <div class="tip">${esc(d.tip)}</div>
     </div>
-    <button class="btn btn-primary btn-block" data-action="log" data-drill="${d.id}">Registrar resultado</button>
     ${history.length ? `<div class="card">
-      <div class="card-title"><h2>Historial</h2>${avg != null ? `<span class="badge num">Media últimas 5: ${Math.round(avg)}%</span>` : ''}</div>
+      <div class="history-head">
+        ${ring(avg, { target: d.target, size: 72, stroke: 8, center: `${Math.round(avg)}%`, label: `Media de las últimas ${Math.min(5, history.length)} sesiones: ${Math.round(avg)}%, objetivo ${d.target}%` })}
+        <div><h2>Historial</h2><p class="small muted">Media de las últimas ${plural(Math.min(5, history.length), 'sesión', 'sesiones')} · objetivo ${d.target}%</p></div>
+      </div>
       ${chart}
       <ul class="list">${history.map((s) => `<li><div class="item">
         <span class="grow"><span class="name">${fmtDate(s.date, { weekday: 'short', day: 'numeric', month: 'short' })}</span>
         ${s.notes ? `<span class="meta">${esc(s.notes)}</span>` : ''}</span>
         ${resultBadge(s.successes, s.attempts, d.target)}
-        <button class="x-btn" data-action="del-session" data-id="${s.id}" aria-label="Borrar registro">×</button>
+        <button class="x-btn" data-action="del-session" data-id="${s.id}" aria-label="Borrar registro del ${fmtDate(s.date)}">${CLOSE_SVG}</button>
       </div></li>`).join('')}</ul>
     </div>` : ''}
+    <div class="dock"><button class="btn btn-primary btn-block" data-action="log" data-drill="${d.id}">Registrar resultado</button></div>
   </div>`;
 }
 
@@ -255,10 +420,11 @@ function openLogSheet(drillId, day, idx) {
   const planDate = planDay ? addDays(plan.week, planDay.dow) : null;
   const date = planDate && planDate < todayISO() ? planDate : todayISO();
   openSheet(`<h2>${esc(d.name)}</h2>
-    <p class="small muted">Acierto: ${esc(d.success)}</p>
+    <p class="small muted">Acierto: ${esc(d.success)} · Objetivo ${d.target}%</p>
     <form class="stack" data-form="session" data-drill="${d.id}" data-day="${day ?? ''}" data-idx="${idx ?? ''}">
+      <div class="grid2">${stepper('successes', 'Aciertos', 0)}${stepper('attempts', 'Intentos', d.attempts, 1)}</div>
+      <p class="small muted hint">Mantén pulsado + o − para avanzar rápido.</p>
       <label class="field">Fecha<input type="date" name="date" value="${date}" max="${todayISO()}" required></label>
-      <div class="grid2">${stepper('attempts', 'Intentos', d.attempts, 1)}${stepper('successes', 'Aciertos', 0)}</div>
       <label class="field">Notas (opcional)<textarea name="notes" rows="2" placeholder="Sensaciones, viento, qué falló…"></textarea></label>
       <button class="btn btn-primary btn-block">Guardar</button>
     </form>`);
@@ -288,19 +454,19 @@ function renderRounds() {
   }).join('');
 
   return `<div class="stack">
-    <button class="btn btn-primary btn-block" data-action="new-round">+ Registrar vuelta</button>
     ${rounds.length ? `<div class="card">
       <div class="card-title"><h2>${recent.length === 1 ? 'Tu última vuelta' : `Media de las últimas ${recent.length} vueltas`}</h2><span class="muted small">normalizado a 18 hoyos</span></div>
       <div class="grid3">
-        ${stat(avg('overPar18'), 'Sobre par', fmtSigned)}
+        ${stat(avg('overPar18'), 'Golpes sobre par', fmtSigned)}
         ${stat(avg('putts18'), 'Putts', (x) => x.toFixed(1))}
-        ${stat(avg('girPct'), 'GIR %')}
+        ${stat(avg('girPct'), 'Greens en reg. %')}
         ${stat(avg('fwPct'), 'Calles %')}
         ${stat(avg('udPct'), 'Up & down %')}
         ${stat(mean(rounds.slice(0, 5).map((r) => (r.penalties == null ? null : r.penalties * (18 / r.holes)))), 'Penalidades', (x) => x.toFixed(1))}
       </div></div>
       <div class="card"><ul class="list">${list}</ul></div>`
     : `<div class="card empty">Aún no has registrado vueltas.<br>Con unas pocas, el plan de cada semana se adapta a donde pierdes golpes.</div>`}
+    <div class="dock"><button class="btn btn-primary btn-block" data-action="new-round">Registrar vuelta</button></div>
   </div>`;
 }
 
@@ -309,6 +475,7 @@ function openRoundSheet(id) {
   const v = (k, def = '') => esc(r?.[k] ?? def);
   const n = (name, label, def = '', extra = '') =>
     `<label class="field">${label}<input type="number" inputmode="numeric" name="${name}" value="${v(name, def)}" min="0" ${extra}></label>`;
+  const hasStats = r && ['fairways', 'gir', 'putts', 'udAtt', 'udMade'].some((k) => r[k] != null) || (r?.penalties ?? 0) > 0;
   openSheet(`<h2>${r ? 'Editar vuelta' : 'Nueva vuelta'}</h2>
     <form class="stack" data-form="round" data-id="${r?.id ?? ''}">
       <div class="grid2">
@@ -319,12 +486,17 @@ function openRoundSheet(id) {
       </div>
       <label class="field">Campo<input name="course" value="${v('course')}" placeholder="Nombre del campo" autocomplete="off"></label>
       <div class="grid2">${n('score', 'Golpes', '', 'required')}${n('par', 'Par del campo', 72)}</div>
-      <div class="grid2">${n('fairways', 'Calles cogidas')}${n('fwPossible', 'Calles posibles', 14)}</div>
-      <div class="grid2">${n('gir', 'Greens en regulación')}${n('putts', 'Putts')}</div>
-      <div class="grid2">${n('udAtt', 'Up & down: intentos')}${n('udMade', 'Up & down: conseguidos')}</div>
-      ${n('penalties', 'Golpes de penalidad', 0)}
+      <details class="group" ${hasStats ? 'open' : ''}>
+        <summary><strong>Estadísticas</strong> <span class="muted small">· opcional, afinan tu plan</span></summary>
+        <div class="stack group-body">
+          <div class="grid2">${n('fairways', 'Calles cogidas')}${n('fwPossible', 'Calles posibles', 14)}</div>
+          <div class="grid2">${n('gir', 'Greens en regulación (GIR)')}${n('putts', 'Putts')}</div>
+          <p class="small muted">Up & down: veces que fallaste el green y aun así hiciste par o mejor.</p>
+          <div class="grid2">${n('udAtt', 'Up & down: intentos')}${n('udMade', 'Up & down: conseguidos')}</div>
+          ${n('penalties', 'Golpes de penalidad', 0)}
+        </div>
+      </details>
       <label class="field">Notas<textarea name="notes" rows="2">${v('notes')}</textarea></label>
-      <p class="small muted">Up & down: veces que fallaste el green y luego hiciste par o mejor.</p>
       <button class="btn btn-primary btn-block">Guardar</button>
       ${r ? `<button type="button" class="btn btn-danger btn-block" data-action="del-round" data-id="${r.id}">Borrar vuelta</button>` : ''}
     </form>`);
@@ -351,13 +523,18 @@ function renderDistances() {
         <span class="r" style="left:${(s.min / scaleMax) * 100}%;width:${Math.max(((s.max - s.min) / scaleMax) * 100, 1)}%"></span>
         <span class="a" style="left:${(s.avg / scaleMax) * 100}%"></span></div>` : ''}</td>
     </tr>`).join('');
+  const empty = !st.shots.length
+    ? `<div class="card hint-card"><h2>Cómo medir tus distancias</h2>
+        <p class="small">En el campo de prácticas con medidor (o en el campo con un telémetro), pega 5–10 bolas con cada palo y apunta dónde <strong>bota</strong> cada una: eso es el vuelo (carry). Descarta los fallos claros. Con 5 golpes por palo ya verás tu media y tu dispersión.</p></div>`
+    : '';
   return `<div class="stack">
-    <button class="btn btn-primary btn-block" data-action="add-shots">+ Añadir distancias</button>
+    ${empty}
     <div class="card">
       <table class="tbl"><thead><tr><th>Palo</th><th class="right">Media (m)</th><th class="right">Disp.</th><th>Rango</th></tr></thead>
       <tbody>${rows}</tbody></table>
       <p class="small muted" style="margin-top:10px">Distancia de vuelo (carry) en metros. Se usan los últimos 30 golpes de cada palo. "Disp." es la dispersión típica: cuanto menor, más regular. Toca un palo para ver o borrar sus golpes.</p>
     </div>
+    <div class="dock"><button class="btn btn-primary btn-block" data-action="add-shots">Añadir distancias</button></div>
   </div>`;
 }
 
@@ -391,11 +568,11 @@ function openClubDetail(club) {
   const c = clubById(club);
   const shots = getState().shots.filter((s) => s.club === club).sort(byDateDesc);
   openSheet(`<div class="card-title"><h2>${c.id} · ${c.name}</h2>
-      <button class="btn btn-sm btn-primary" data-action="add-shots" data-club="${club}">+ Añadir</button></div>
+      <button class="btn btn-sm btn-primary" data-action="add-shots" data-club="${club}">Añadir</button></div>
     ${shots.length ? `<ul class="list">${shots.map((s) => `<li><div class="item">
       <span class="grow">${fmtDate(s.date, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
       <strong class="num">${s.carry} m</strong>
-      <button class="x-btn" data-action="del-shot" data-id="${s.id}" data-club="${club}" aria-label="Borrar golpe">×</button>
+      <button class="x-btn" data-action="del-shot" data-id="${s.id}" data-club="${club}" aria-label="Borrar golpe de ${s.carry} m">${CLOSE_SVG}</button>
     </div></li>`).join('')}</ul>` : '<p class="empty">Sin golpes registrados.</p>'}`);
 }
 
@@ -423,9 +600,12 @@ function renderProgress() {
     const now = rate(daysAgo(29), addDays(todayISO(), 1));
     const prev = rate(daysAgo(59), daysAgo(29));
     const diff = now != null && prev != null ? now - prev : null;
-    return `<tr><td class="cat-${cat}"><span class="row">${catDot(cat)} ${info.short}</span></td>
-      <td class="right">${now == null ? '<span class="muted">–</span>' : now + '%'}</td>
-      <td class="right">${diff == null ? '' : `<span class="badge ${diff >= 0 ? 'ok' : 'warn'}">${fmtSigned(diff)}</span>`}</td></tr>`;
+    return `<div class="area cat-${cat}">
+      ${ring(now, { size: 64, stroke: 7, center: now == null ? '–' : `${now}%`,
+        label: now == null ? `${info.name}: sin datos` : `${info.name}: ${now}% del objetivo${diff == null ? '' : `, ${fmtSigned(diff)} puntos`}` })}
+      <span class="name row">${catDot(cat)} ${info.short}</span>
+      ${diff == null ? '' : `<span class="badge ${diff >= 0 ? 'ok' : 'warn'}">${fmtSigned(diff)} pp</span>`}
+    </div>`;
   }).join('');
 
   // Ejercicio concreto
@@ -436,14 +616,14 @@ function renderProgress() {
     drillBlock = `<label class="field">Ejercicio<select data-change="progress-drill">
         ${withData.map((x) => `<option value="${x.id}" ${x.id === d.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>
       ${hist.length >= 2
-        ? lineChart(hist.map((s) => ({ label: fmtDate(s.date), y: pct(s.successes, s.attempts) })), { target: d.target, min: 0, max: 100, suffix: '%', label: `Evolución de ${d.name}` })
+        ? lineChart(hist.map((s) => ({ t: s.date, label: fmtDate(s.date), y: pct(s.successes, s.attempts) })), { target: d.target, min: 0, max: 100, suffix: '%', label: `Evolución de ${d.name}` })
         : '<p class="small muted">Necesitas al menos dos registros de este ejercicio para ver la gráfica.</p>'}`;
   }
 
   // Vueltas
   const rounds = [...st.rounds].sort(byDateAsc);
   const roundChart = (key, title, opts) => {
-    const pts = rounds.map((r) => ({ label: fmtDate(r.date), y: roundStats(r)[key] })).filter((p) => p.y != null);
+    const pts = rounds.map((r) => ({ t: r.date, label: fmtDate(r.date), y: roundStats(r)[key] })).filter((p) => p.y != null);
     return pts.length >= 2 ? `<div><h3 class="small" style="margin:12px 0 4px">${title}</h3>${lineChart(pts, { label: title, ...opts })}</div>` : '';
   };
   const roundCharts = [
@@ -455,16 +635,14 @@ function renderProgress() {
   ].join('');
 
   return `<div class="stack">
-    <div class="grid3">
-      <div class="stat"><div class="v">${last28.length}</div><div class="l">Ejercicios (28 días)</div></div>
-      <div class="stat"><div class="v">${balls}</div><div class="l">Bolas / intentos</div></div>
-      <div class="stat"><div class="v">${activeDays}</div><div class="l">Días entrenados</div></div>
-    </div>
+    <p class="volume"><span class="muted">En 28 días:</span>
+      <strong class="num">${last28.length}</strong> ejercicios · <strong class="num">${balls}</strong> bolas ·
+      <strong class="num">${activeDays}</strong> ${activeDays === 1 ? 'día' : 'días'} entrenando</p>
     <div class="card"><h2>Evolución por ejercicio</h2><div style="margin-top:10px">${drillBlock}</div></div>
     <div class="card">
       <h2>Rendimiento por área</h2>
-      <p class="small muted">% del objetivo alcanzado en los últimos 30 días (100% = justo en el objetivo) y cambio frente a los 30 días anteriores.</p>
-      <table class="tbl"><tbody>${catRows}</tbody></table>
+      <p class="small muted">Cuánto del objetivo alcanzas en los últimos 30 días (100% = justo en el objetivo) y el cambio frente a los 30 días anteriores, en puntos porcentuales (pp).</p>
+      <div class="area-rings">${catRows}</div>
     </div>
     <div class="card"><h2>Vueltas</h2>
       ${roundCharts || '<p class="small muted">Registra al menos dos vueltas para ver tendencias.</p>'}</div>
@@ -472,6 +650,8 @@ function renderProgress() {
 }
 
 // ── Perfil ──
+const OB_STEPS = 3;
+
 function renderProfile() {
   const st = getState();
   const p = st.profile || { name: '', handicap: '', days: [0, 2, 4], minutes: 45, weaknesses: [], clubs: DEFAULT_CLUBS };
@@ -479,25 +659,49 @@ function renderProfile() {
   const check = (name, value, label, checked, aria = '') =>
     `<label class="chip-check"><input type="checkbox" name="${name}" value="${value}" ${checked ? 'checked' : ''} ${aria ? `aria-label="${aria}"` : ''}><span>${label}</span></label>`;
 
+  const game = `<div class="grid2">
+      <label class="field">Nombre<input name="name" value="${esc(p.name)}" autocomplete="given-name"></label>
+      <label class="field">Hándicap<input name="handicap" value="${esc(fmtHcp(p.handicap))}" inputmode="decimal" required
+        pattern="(\\+|-)?\\d{1,2}([.,]\\d)?" placeholder="Ej.: 14,2" aria-describedby="hcp-hint"></label>
+    </div>
+    <p class="small muted" id="hcp-hint">Si eres hándicap plus, escríbelo con signo: +1,5.</p>`;
+  const time = `<fieldset><legend>Días de entrenamiento</legend>
+      <div class="chips">${DOW_SHORT.map((l, i) => check('days', i, l, p.days.includes(i), DOW[i])).join('')}</div></fieldset>
+    <label class="field">Tiempo por sesión<select name="minutes">
+      ${[30, 45, 60, 90, 120].map((m) => `<option value="${m}" ${Number(p.minutes) === m ? 'selected' : ''}>${m} minutos</option>`).join('')}</select></label>`;
+  const weak = `<fieldset><legend>Puntos débiles</legend>
+      <div class="chips">${Object.entries(CATEGORIES).map(([k, v]) => check('weaknesses', k, v.short, p.weaknesses.includes(k))).join('')}</div></fieldset>`;
+  const clubs = `<fieldset><legend>Palos en tu bolsa</legend>
+      <div class="chips">${CLUBS.map((c) => check('clubs', c.id, c.id, p.clubs.includes(c.id), c.name)).join('')}</div></fieldset>`;
+
+  if (first) {
+    return `<div class="stack">
+      <div class="card highlight"><h2>Te damos la bienvenida</h2>
+        <p class="small">Tres preguntas rápidas y tendrás tu plan semanal. Podrás cambiarlo todo cuando quieras.</p></div>
+      <form class="card stack onboarding-form" data-form="profile" data-step="1" novalidate>
+        <p class="small muted step-count" aria-live="polite">Paso 1 de ${OB_STEPS}</p>
+        <div class="ob-step stack" data-step="1"><h2 tabindex="-1">Tu juego</h2>${game}</div>
+        <div class="ob-step stack" data-step="2" hidden><h2 tabindex="-1">Tu tiempo</h2>${time}</div>
+        <div class="ob-step stack" data-step="3" hidden><h2 tabindex="-1">Qué quieres mejorar</h2>${weak}
+          <p class="small muted">Si no lo tienes claro, déjalo en blanco: el plan aprenderá de tus vueltas y ejercicios.</p>
+          <details class="group"><summary><strong>Palos en tu bolsa</strong> <span class="muted small">· ${p.clubs.length} marcados</span></summary>
+            <div class="group-body">${clubs}</div></details>
+        </div>
+        <div class="ob-nav">
+          <button type="button" class="btn" data-action="ob-back" hidden>Atrás</button>
+          <button type="button" class="btn btn-primary" data-action="ob-next">Siguiente</button>
+          <button class="btn btn-primary" data-ob-submit hidden>Crear mi plan</button>
+        </div>
+      </form>
+    </div>`;
+  }
+
   return `<div class="stack">
-    ${first ? `<div class="card highlight"><h2>Bienvenido</h2>
-      <p class="small">Cuéntame cómo juegas y cuánto tiempo tienes. Con esto preparo tu plan semanal. Podrás cambiarlo cuando quieras.</p></div>` : ''}
     <form class="card stack" data-form="profile">
-      <div class="grid2">
-        <label class="field">Nombre<input name="name" value="${esc(p.name)}" autocomplete="given-name"></label>
-        <label class="field">Hándicap<input type="number" name="handicap" value="${esc(p.handicap)}" step="0.1" min="-5" max="36" inputmode="decimal" required></label>
-      </div>
-      <fieldset><legend>Días de entrenamiento</legend>
-        <div class="chips">${DOW_SHORT.map((l, i) => check('days', i, l, p.days.includes(i), DOW[i])).join('')}</div></fieldset>
-      <label class="field">Tiempo por sesión<select name="minutes">
-        ${[30, 45, 60, 90, 120].map((m) => `<option value="${m}" ${Number(p.minutes) === m ? 'selected' : ''}>${m} minutos</option>`).join('')}</select></label>
-      <fieldset><legend>Puntos débiles</legend>
-        <div class="chips">${Object.entries(CATEGORIES).map(([k, v]) => check('weaknesses', k, v.short, p.weaknesses.includes(k))).join('')}</div></fieldset>
-      <fieldset><legend>Palos en tu bolsa</legend>
-        <div class="chips">${CLUBS.map((c) => check('clubs', c.id, c.id, p.clubs.includes(c.id))).join('')}</div></fieldset>
-      <button class="btn btn-primary btn-block">${first ? 'Crear mi plan' : 'Guardar cambios'}</button>
+      ${game}${time}${weak}${clubs}
+      <button class="btn btn-primary btn-block">Guardar cambios</button>
     </form>
-    ${first ? '' : `<div class="card stack">
+    <div class="card stack">
       <h2>Copia de seguridad</h2>
       <p class="small muted">Tus datos se guardan solo en este dispositivo. Exporta una copia de vez en cuando o para pasarlos a otro móvil.</p>
       <div class="grid2">
@@ -506,8 +710,18 @@ function renderProfile() {
         <input type="file" id="import-file" accept="application/json,.json" data-change="import" hidden>
       </div>
       <button class="btn btn-danger btn-block" data-action="reset">Borrar todos los datos</button>
-    </div>`}
+    </div>
   </div>`;
+}
+
+function setObStep(f, n) {
+  f.dataset.step = n;
+  f.querySelectorAll('.ob-step').forEach((s) => { s.hidden = Number(s.dataset.step) !== n; });
+  f.querySelector('[data-action="ob-back"]').hidden = n === 1;
+  f.querySelector('[data-action="ob-next"]').hidden = n === OB_STEPS;
+  f.querySelector('[data-ob-submit]').hidden = n !== OB_STEPS;
+  f.querySelector('.step-count').textContent = `Paso ${n} de ${OB_STEPS}`;
+  f.querySelector(`.ob-step[data-step="${n}"] h2`).focus();
 }
 
 // ── Router ──
@@ -523,7 +737,7 @@ function currentRoute() {
 function render({ keepScroll = false } = {}) {
   const { r, arg } = currentRoute();
   const y = window.scrollY;
-  $('#title').textContent = TITLES[r];
+  $('#title').textContent = !getState().profile ? 'Golf Plan' : TITLES[r];
   document.body.classList.toggle('onboarding', !getState().profile);
   const tab = r === 'ejercicio' ? 'entrenar' : r;
   document.querySelectorAll('.tabbar [data-nav]').forEach((b) => {
@@ -541,40 +755,65 @@ const go = (path) => {
 };
 
 // ── Acciones ──
+let stepHeld = false;
+
 const actions = {
-  'close-sheet': closeSheet,
-  step(el) {
-    const input = el.closest('form').elements[el.dataset.name];
-    input.value = Math.max(Number(el.dataset.min), (Number(input.value) || 0) + Number(el.dataset.delta));
+  'close-sheet': requestCloseSheet,
+  'close-celebrate': closeCelebrate,
+  step(el, fromHold = false) {
+    if (!fromHold && stepHeld) { stepHeld = false; return; } // el clic que sigue a mantener pulsado
+    const f = el.closest('form');
+    const input = f.elements[el.dataset.name];
+    let v = Math.max(Number(el.dataset.min), (Number(input.value) || 0) + Number(el.dataset.delta));
+    if (el.dataset.name === 'successes' && f.elements.attempts) v = Math.min(v, Number(f.elements.attempts.value) || v);
+    input.value = v;
+    sheet.dataset.dirty = '1';
   },
   log(el) { openLogSheet(el.dataset.drill, el.dataset.day, el.dataset.idx); },
   filter(el) { drillFilter = el.dataset.cat; render({ keepScroll: true }); },
-  'regen-plan'() {
-    if (!confirm('¿Generar un plan distinto para esta semana? Tus registros se conservan, y también las marcas de los ejercicios que sigan en el plan.')) return;
+  async 'regen-plan'() {
+    if (!(await ask('¿Generar un plan distinto para esta semana?', { ok: 'Generar', detail: 'Tus registros se conservan, y también las marcas de los ejercicios que sigan en el plan.' }))) return;
     update((s) => { s.plan = carryTicks(s.plan, generatePlan(s.profile, s.rounds, s.sessions, (Math.random() * 2 ** 32) >>> 0)); });
     render();
     toast('Plan nuevo generado');
   },
-  'del-session'(el) {
-    if (!confirm('¿Borrar este registro?')) return;
+  'dismiss-summary'() {
+    update((s) => { if (s.lastWeek) s.lastWeek.dismissed = true; });
+    render({ keepScroll: true });
+  },
+  async 'del-session'(el) {
+    if (!(await ask('¿Borrar este registro?', { ok: 'Borrar', danger: true }))) return;
     update((s) => { s.sessions = s.sessions.filter((x) => x.id !== el.dataset.id); });
     render({ keepScroll: true });
   },
   'new-round'() { openRoundSheet(); },
   'edit-round'(el) { openRoundSheet(el.dataset.id); },
-  'del-round'(el) {
-    if (!confirm('¿Borrar esta vuelta?')) return;
+  async 'del-round'(el) {
+    if (!(await ask('¿Borrar esta vuelta?', { ok: 'Borrar', danger: true }))) return;
     update((s) => { s.rounds = s.rounds.filter((x) => x.id !== el.dataset.id); });
     closeSheet();
     render({ keepScroll: true });
   },
   'add-shots'(el) { openShotsSheet(el.dataset.club); },
   'club-detail'(el) { openClubDetail(el.dataset.club); },
-  'del-shot'(el) {
-    if (!confirm('¿Borrar este golpe?')) return;
+  async 'del-shot'(el) {
+    if (!(await ask('¿Borrar este golpe?', { ok: 'Borrar', danger: true }))) return;
     update((s) => { s.shots = s.shots.filter((x) => x.id !== el.dataset.id); });
     openClubDetail(el.dataset.club);
     render({ keepScroll: true });
+  },
+  'ob-next'(el) {
+    const f = el.closest('form');
+    const n = Number(f.dataset.step);
+    const step = f.querySelector(`.ob-step[data-step="${n}"]`);
+    for (const input of step.querySelectorAll('input')) if (!input.reportValidity()) return;
+    if (n === 1 && parseHcp(f.handicap.value) == null) return toast('Escribe tu hándicap entre +10 y 54, p. ej. 14,2');
+    if (n === 2 && !f.querySelector('[name="days"]:checked')) return toast('Elige al menos un día de entrenamiento');
+    setObStep(f, n + 1);
+  },
+  'ob-back'(el) {
+    const f = el.closest('form');
+    setObStep(f, Number(f.dataset.step) - 1);
   },
   'import-pick'() { $('#import-file').click(); },
   export() {
@@ -585,9 +824,9 @@ const actions = {
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   },
-  reset() {
-    if (!confirm('Se borrarán tu perfil, registros, vueltas y distancias de este dispositivo. ¿Continuar?')) return;
-    if (!confirm('Esta acción no se puede deshacer. ¿Seguro?')) return;
+  async reset() {
+    if (!(await ask('¿Borrar todos tus datos?', { ok: 'Continuar', danger: true, detail: 'Se borrarán tu perfil, registros, vueltas y distancias de este dispositivo.' }))) return;
+    if (!(await ask('Esta acción no se puede deshacer. ¿Seguro?', { ok: 'Borrar todo', danger: true }))) return;
     replaceState({});
     go('perfil');
   },
@@ -606,10 +845,26 @@ const forms = {
       linkToPlan(s.plan, session, day, idx);
     });
     closeSheet();
+    justDone = session.id;
     render({ keepScroll: true });
+    justDone = null;
+
     const d = drillById(drill);
     const p = pct(successes, attempts);
-    toast(p >= d.target ? `${p}% — ¡objetivo cumplido!` : `${p}% guardado (objetivo ${d.target}%)`);
+    const met = p >= d.target;
+    const plan = getState().plan;
+    const planDay = plan?.days.find((x) => x.items.some((it) => it.sessionId === session.id));
+    if (planDay && dayCounts(plan, planDay) && planDay.items.every(isTicked)) {
+      const w = weekSummary(plan);
+      if (w.done === w.total) {
+        return celebrate({ title: '¡Semana completada!', detail: `${w.total} de ${w.total} ejercicios · ${plural(w.met, 'objetivo cumplido', 'objetivos cumplidos')}`, center: `${w.done}/${w.total}` });
+      }
+      const when = planDay.dow === todayDow() ? 'de hoy' : `del ${DOW[planDay.dow].toLowerCase()}`;
+      return celebrate({ title: `¡Sesión ${when} completada!`, detail: `${plural(planDay.items.length, 'ejercicio hecho', 'ejercicios hechos')} · ${w.done} de ${w.total} esta semana`, center: `${planDay.items.length}/${planDay.items.length}` });
+    }
+    if (met) return celebrate({ title: '¡Objetivo cumplido!', detail: `${d.name}: ${successes} de ${attempts} · objetivo ${d.target}%`, value: p, target: d.target, center: `${p}%` });
+    const need = Math.ceil((d.target / 100) * attempts) - successes;
+    toast(`${p}% guardado. Te faltaron ${plural(need, 'acierto', 'aciertos')} para el ${d.target}%.`);
   },
   round(f) {
     const fields = ['holes', 'par', 'score', 'fairways', 'fwPossible', 'gir', 'putts', 'udAtt', 'udMade', 'penalties'];
@@ -621,13 +876,14 @@ const forms = {
     if (r.fwPossible != null && r.fwPossible > r.holes) return toast('Calles posibles no puede superar el número de hoyos');
     if (r.par != null && (r.par < r.holes * 3 || r.par > r.holes * 5)) return toast(`Con ${r.holes} hoyos el par debe estar entre ${r.holes * 3} y ${r.holes * 5}`);
     if (r.score != null && r.score < r.holes) return toast(`Con ${r.holes} hoyos no puedes hacer menos de ${r.holes} golpes`);
+    const isNew = !f.dataset.id;
     update((s) => {
       const i = s.rounds.findIndex((x) => x.id === r.id);
       if (i >= 0) s.rounds[i] = r; else s.rounds.push(r);
     });
     closeSheet();
     render({ keepScroll: true });
-    toast('Vuelta guardada');
+    toast(isNew ? 'Vuelta guardada. Contará en el plan del próximo lunes.' : 'Vuelta actualizada');
   },
   shots(f) {
     const { values, bad } = parseCarries(f.values.value);
@@ -643,24 +899,30 @@ const forms = {
     toast(`${values.length} ${values.length === 1 ? 'golpe guardado' : 'golpes guardados'}`);
   },
   profile(f) {
+    // En el alta por pasos, pulsar Intro antes del último paso avanza en lugar de crear el plan.
+    if (f.dataset.step && Number(f.dataset.step) < OB_STEPS) return actions['ob-next'](f.querySelector('[data-action="ob-next"]'));
     const data = new FormData(f);
     const profile = {
       name: String(data.get('name') || '').trim(),
-      handicap: Number(data.get('handicap')),
+      handicap: parseHcp(data.get('handicap')),
       days: data.getAll('days').map(Number),
       minutes: Number(f.minutes.value),
       weaknesses: data.getAll('weaknesses'),
       clubs: data.getAll('clubs'),
     };
+    if (profile.handicap == null) return toast('Escribe tu hándicap entre +10 y 54, p. ej. 14,2');
     if (!profile.days.length) return toast('Elige al menos un día de entrenamiento');
     if (!profile.clubs.length) return toast('Elige al menos un palo');
     const old = getState().profile;
     const planChanged = !old || ['handicap', 'days', 'minutes', 'weaknesses'].some((k) => JSON.stringify(old[k]) !== JSON.stringify(profile[k]));
     update((s) => {
       s.profile = profile;
-      if (planChanged) s.plan = carryTicks(s.plan, generatePlan(profile, s.rounds, s.sessions, hashStr(weekKey() + Date.now())));
+      if (planChanged) {
+        s.plan = carryTicks(s.plan, generatePlan(profile, s.rounds, s.sessions, hashStr(weekKey() + Date.now())));
+        if (!old) s.plan.start = todayISO(); // los días anteriores al alta no cuentan como fallados
+      }
     });
-    toast(old ? (planChanged ? 'Perfil guardado y plan actualizado' : 'Perfil guardado') : 'Tu plan está listo');
+    toast(old ? (planChanged ? 'Perfil guardado y plan actualizado' : 'Perfil guardado') : 'Tu plan está listo', old ? '' : 'win');
     go('plan');
   },
 };
@@ -681,7 +943,7 @@ const changes = {
     try {
       const data = JSON.parse(await file.text());
       if (data.app !== 'golfplan' || !Array.isArray(data.sessions)) throw new Error('formato');
-      if (!confirm('Se reemplazarán todos tus datos actuales por los de la copia. ¿Continuar?')) return;
+      if (!(await ask('¿Reemplazar tus datos por los de la copia?', { ok: 'Importar', danger: true, detail: 'Se perderá lo que tengas ahora en este dispositivo.' }))) return;
       const { app, version, exportedAt, ...rest } = data;
       replaceState(rest);
       toast('Datos importados');
@@ -695,6 +957,7 @@ const changes = {
 };
 
 document.addEventListener('click', (e) => {
+  if (e.target.closest('#celebrate')) { closeCelebrate(); return; }
   const nav = e.target.closest('[data-nav]');
   if (nav) { closeSheet(); go(nav.dataset.nav); return; }
   const act = e.target.closest('[data-action]');
@@ -708,7 +971,30 @@ document.addEventListener('change', (e) => {
   const el = e.target.closest('[data-change]');
   if (el && changes[el.dataset.change]) changes[el.dataset.change](el);
 });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
+document.addEventListener('input', (e) => { if (e.target.closest('#sheet form')) sheet.dataset.dirty = '1'; });
+document.addEventListener('focusin', (e) => { if (e.target.matches('.stepper input')) e.target.select(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$('#celebrate').hidden) { closeCelebrate(); return; }
+  if (e.key === 'Escape' && !sheet.hidden && !$('#ask').open) { e.preventDefault(); requestCloseSheet(); }
+});
+
+// Mantener pulsado + o − repite el paso.
+let holdTimer = null;
+document.addEventListener('pointerdown', (e) => {
+  const btn = e.target.closest('[data-action="step"]');
+  if (!btn) return;
+  stepHeld = false;
+  clearTimeout(holdTimer);
+  holdTimer = setTimeout(function repeat() {
+    stepHeld = true;
+    actions.step(btn, true);
+    holdTimer = setTimeout(repeat, 90);
+  }, 450);
+});
+const stopHold = () => clearTimeout(holdTimer);
+document.addEventListener('pointerup', stopHold);
+document.addEventListener('pointercancel', stopHold);
+
 window.addEventListener('hashchange', () => { if (!sheet.hidden) closeSheet(); render(); });
 
 // Si la app se queda abierta y cambia la semana, se regenera el plan al volver.
